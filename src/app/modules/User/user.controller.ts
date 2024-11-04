@@ -48,23 +48,6 @@ const getAllUsers = catchAsync(async (req, res) => {
   });
 });
 
-// const updateUser = catchAsync(async (req, res) => {
-//   const { email } = req.params;
-//   const payload = req.body;
-//   const profileImageLocalPath = req?.file?.path;
-
-//   const result = await UserService.updateUser(
-//     email,
-//     payload,
-//     profileImageLocalPath
-//   );
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "User updated successfully!",
-//     data: result,
-//   });
-// });
 
 const updateUser = catchAsync(async (req, res) => {
   const { email } = req.params;

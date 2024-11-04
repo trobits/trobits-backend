@@ -1,9 +1,9 @@
 import { ObjectId } from "mongodb";
 
 interface ITopic {
-  id: ObjectId;
+  id: string;
   title: string;
-  description: string;
+  description?: string;
   image?: string;
   topicAuthor: string;
   posts: ObjectId[];

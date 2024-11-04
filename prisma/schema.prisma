@@ -8,51 +8,52 @@ generator client {
 }
 
 model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  email        String   @unique
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  email        String    @unique
   password     String
   firstName    String
   lastName     String
   profileImage String?
   coverImage   String?
-  isDeleted    Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  followers    String[] @db.ObjectId
+  isDeleted    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  followers    String[]  @db.ObjectId
   // otp          String?
-  role         Role     @default(USER)
+  role         Role      @default(USER)
   // otpExpiry    DateTime?
   // identifier   String?
   refreshToken String?
-  posts    Post[]    @relation("UserPosts")
-  comments Comment[] @relation("UserComments")
+  posts        Post[]    @relation("UserPosts")
+  comments     Comment[] @relation("UserComments")
 
   @@map("users")
 }
 
-model Like {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  count     Int
-  users     String[] @db.ObjectId
-  postId    String?  @db.ObjectId
-  post      Post?    @relation("PostLikes", fields: [postId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// model Like {
+//   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+//   count     Int
+//   users     String[] @db.ObjectId // Array of user IDs who liked the post
+//   postId    String?  @db.ObjectId
+//   post      Post?    @relation("PostLikes", fields: [postId], references: [id])
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
 
-  @@map("likes")
-}
+//   @@map("likes")
+// }
 
 model Comment {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  likes     Int
-  dislikes  Int
-  authorId  String   @db.ObjectId
-  author    User     @relation("UserComments", fields: [authorId], references: [id])
-  postId    String   @db.ObjectId
-  post      Post     @relation("PostComments", fields: [postId], references: [id])
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  content      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  authorId     String   @db.ObjectId
+  author       User     @relation("UserComments", fields: [authorId], references: [id])
+  postId       String   @db.ObjectId
+  post         Post     @relation("PostComments", fields: [postId], references: [id])
+  likers       String[] @db.ObjectId
+  likeCount    Int      @default(0)
+  dislikeCount Int      @default(0)
 
   @@map("comments")
 }
@@ -65,7 +66,7 @@ model Post {
   authorId  String    @db.ObjectId
   author    User      @relation("UserPosts", fields: [authorId], references: [id])
   image     String?
-  likes     Like[]    @relation("PostLikes")
+  likers       String[]  @db.ObjectId
   comments  Comment[] @relation("PostComments")
   topicId   String?   @db.ObjectId
   topic     Topic?    @relation("TopicPosts", fields: [topicId], references: [id])
@@ -76,13 +77,13 @@ model Post {
 model Topic {
   id          String  @id @default(auto()) @map("_id") @db.ObjectId
   title       String
-  description String
+  description String?
   image       String?
-  topicAuthor String  @db.ObjectId 
+  topicAuthor String  @db.ObjectId
   posts       Post[]  @relation("TopicPosts")
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("topics")
 }
