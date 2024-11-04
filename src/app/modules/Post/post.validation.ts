@@ -1,10 +1,20 @@
 import { z } from "zod";
+import { ObjectId } from "mongodb";
 
-const changePasswordValidationSchema = z.object({
-  oldPassword: z.string().min(8),
-  newPassword: z.string().min(8),
+const CreatePostSchema = z.object({
+  content: z.string().nonempty("Content is required"),
+  authorId: z.string().nonempty("Author ID is required"),
+  topicId: z.string().nonempty("Topic ID is required"),
+  image: z.string().optional(),
 });
 
-export const authValidation={
-    changePasswordValidationSchema
-}
+const UpdatePostSchema = z
+  .object({
+    id: z.string().nonempty("Post ID is required"),
+    content: z.string().nonempty("Content is required").optional(),
+    authorId: z.string().nonempty("Author ID is required"),
+    topicId: z.string().nonempty("Topic ID is required"),
+    image: z.string().optional(),
+  })
+  .strict(); 
+export { CreatePostSchema ,UpdatePostSchema};

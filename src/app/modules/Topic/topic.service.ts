@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import prisma from "../../../shared/prisma";
 import ITopic from "./topic.interface";
 import ApiError from "../../../errors/ApiErrors";
