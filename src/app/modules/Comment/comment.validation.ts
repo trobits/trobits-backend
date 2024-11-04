@@ -1,10 +1,16 @@
 import { z } from "zod";
 
-const changePasswordValidationSchema = z.object({
-  oldPassword: z.string().min(8),
-  newPassword: z.string().min(8),
+const createCommentSchema = z.object({
+  content: z.string(),
+  authorId: z.string(),
+  postId: z.string(),
 });
 
-export const authValidation={
-    changePasswordValidationSchema
-}
+const updateCommentSchema = z
+  .object({
+    id: z.string(),
+    content: z.string(),
+  })
+  .strict();
+
+export { createCommentSchema,updateCommentSchema };
