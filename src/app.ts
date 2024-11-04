@@ -4,7 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
 import bodyParser from "body-parser";
-// import router from "./app/routes";
+import router from "./app/routes";
 import GlobalErrorHandler from "./app/middlewares/globalErrorHandler";
 
 const app: Application = express();
@@ -30,7 +30,7 @@ app.use(express.static("public"));
 // Route handler for the root endpoint
 app.get("/", (req: Request, res: Response) => {
   res.send({
-    message: "How's Project API",
+    message: "welcome to Sisiku Project API.",
   });
 });
 
@@ -38,7 +38,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'))); // Serve static files from the "uploads" directory
 
 // Setup API routes
-// app.use("/api/v1", router);
+app.use("/api/v1", router);
 
 // Error handling middleware
 app.use(GlobalErrorHandler);

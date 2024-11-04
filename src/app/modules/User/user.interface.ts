@@ -1,22 +1,22 @@
-import { Role, Post, Comment, Like } from "@prisma/client";
+import { Role } from "@prisma/client";
+import { ObjectId } from "mongodb";
 
-export interface IUser {
-  id?: string;
+interface IUser {
+  id: ObjectId;
   email: string;
   password: string;
-  role: Role;
-  isDeleted?: boolean;
+  firstName: string;
+  lastName?: string;
   profileImage?: string;
+  coverImage?: string;
+  isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
-  otp?: string;
-  otpExpiry?: Date;
-  identifier?: string;
+  followers?: ObjectId[];
+  role: Role;
   refreshToken?: string;
-  firstName: string;
-  lastName: string;
-  posts?: Post[];
-  comments?: Comment[];
-  followers?: string[];
-  likes?: Like[];
+  posts: ObjectId[];
+  comments: ObjectId[];
 }
+
+export default IUser;
