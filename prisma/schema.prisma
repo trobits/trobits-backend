@@ -8,23 +8,24 @@ generator client {
 }
 
 model User {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  email        String    @unique
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
   password     String
   firstName    String
   lastName     String
   profileImage String?
-  isDeleted    Boolean   @default(false)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  otp          String?
-  role         Role      @default(USER)
+  coverImage   String?
+  isDeleted    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  followers    String[] @db.ObjectId
+  // otp          String?
+  role         Role     @default(USER)
   // otpExpiry    DateTime?
   // identifier   String?
   refreshToken String?
-
-  posts        Post[]    @relation("UserPosts")
-  comments     Comment[] @relation("UserComments")
+  posts    Post[]    @relation("UserPosts")
+  comments Comment[] @relation("UserComments")
 
   @@map("users")
 }
@@ -46,7 +47,7 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  likes      Int
+  likes     Int
   dislikes  Int
   authorId  String   @db.ObjectId
   author    User     @relation("UserComments", fields: [authorId], references: [id])
@@ -77,6 +78,7 @@ model Topic {
   title       String
   description String
   image       String?
+  topicAuthor String  @db.ObjectId 
   posts       Post[]  @relation("TopicPosts")
 
   createdAt   DateTime @default(now())
