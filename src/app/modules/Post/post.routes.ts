@@ -24,4 +24,7 @@ router.patch(
 // delete post
 router.delete("/delete-post/:postId", PostControllers.deletePost);
 
+// add or remove like
+router.patch("/add-remove-like", PostControllers.addOrRemoveLike);
+
 export const postRoutes = router;

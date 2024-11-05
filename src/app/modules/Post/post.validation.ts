@@ -17,4 +17,9 @@ const UpdatePostSchema = z
     image: z.string().optional(),
   })
   .strict(); 
-export { CreatePostSchema ,UpdatePostSchema};
+
+  const addOrRemoveLikeSchema = z.object({
+    id: z.string(),
+    authorId: z.string(),
+  });
+export { CreatePostSchema ,UpdatePostSchema, addOrRemoveLikeSchema};

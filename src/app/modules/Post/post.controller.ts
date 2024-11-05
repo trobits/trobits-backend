@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { PostServices } from "./post.service";
-import { CreatePostSchema, UpdatePostSchema } from "./post.validation";
+import { addOrRemoveLikeSchema, CreatePostSchema, UpdatePostSchema } from "./post.validation";
 
 const createPost = catchAsync(async (req: Request, res: Response) => {
   const postImage = req.file?.path || "";
@@ -49,9 +49,21 @@ const deletePost = catchAsync(async (req, res) => {
   });
 });
 
+const addOrRemoveLike = catchAsync(async (req, res) => {
+  const payload = addOrRemoveLikeSchema.parse(req.body);
+  const addOrRemoveLike = await PostServices.addOrRemoveLike(payload);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Post updated successfully.",
+    data: addOrRemoveLike,
+  });
+});
+
 export const PostControllers = {
   createPost,
   getAllPost,
   updatePost,
-  deletePost
+  deletePost,
+  addOrRemoveLike
 };

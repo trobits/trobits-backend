@@ -1,3 +1,4 @@
+import { Post } from "@prisma/client";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import IPost from "./post.interface";
@@ -41,9 +42,9 @@ const getAllPost = async () => {
     include: {
       author: true,
       comments: {
-        include:{
-          author:true
-        }
+        include: {
+          author: true,
+        },
       },
     },
   });
@@ -91,9 +92,49 @@ const deletePost = async (postId: string) => {
   return true;
 };
 
+const addOrRemoveLike = async (payload: Partial<Post>) => {
+  // check for user validation
+  const isUserExist = await prisma.user.findUnique({
+    where: {
+      id: payload.authorId,
+    },
+  });
+  if (!isUserExist) {
+    throw new ApiError(400, "User does not exist with this ID");
+  }
+  // check for post validation
+  const post = await prisma.post.findUnique({
+    where: { id: payload.id },
+  });
+  if (!post) {
+    throw new ApiError(404, "Post not found");
+  }
+  // define userid and is liked already or not
+  const userId = payload.authorId as string;
+  const isLiked = post.likers.includes(userId);
+
+  // Update post like status
+  const updatedPost = await prisma.post.update({
+    where: { id: payload.id },
+    data: {
+      likers: isLiked
+        ? { set: post.likers.filter((likerId) => likerId !== userId) }
+        : { push: userId },
+      likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1,
+    },
+  });
+
+  if (!updatedPost) {
+    throw new ApiError(500, "Error while updating post");
+  }
+
+  return updatedPost;
+};
+
 export const PostServices = {
   createPost,
   getAllPost,
   updatePost,
-  deletePost
+  deletePost,
+  addOrRemoveLike,
 };
