@@ -73,7 +73,7 @@ import ApiError from "../../errors/ApiErrors";
 import config from "../../config";
 import prisma from "../../shared/prisma";
 
-export const verifyJWT = catchAsync(async (req, res, next) => {
+export const verifyUser = catchAsync(async (req, res, next) => {
   try {
     const token =
       req.cookies?.accessToken ||

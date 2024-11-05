@@ -19,6 +19,7 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   followers    String[]  @db.ObjectId
+  following    String[]  @db.ObjectId
   // otp          String?
   role         Role      @default(USER)
   // otpExpiry    DateTime?
@@ -52,7 +53,7 @@ model Comment {
   postId       String   @db.ObjectId
   post         Post     @relation("PostComments", fields: [postId], references: [id])
   likers       String[] @db.ObjectId
-  dislikers       String[] @db.ObjectId
+  dislikers    String[] @db.ObjectId
   likeCount    Int      @default(0)
   dislikeCount Int      @default(0)
 

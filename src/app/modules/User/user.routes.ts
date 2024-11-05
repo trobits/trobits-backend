@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { UserController } from "./user.controller";
 import { fileUploader } from "../../../helpars/fileUploader";
-import { verifyJWT } from "../../middlewares/auth";
+import { verifyUser } from "../../middlewares/auth";
 
 const router = Router();
 
@@ -11,11 +11,11 @@ router.post("/create-user", UserController.createUser);
 router.post("/login", UserController.loginUser);
 // logout user
 // here need to write own auth function where no role will needed
-router.get("/logout", verifyJWT, UserController.logoutUser);
+router.get("/logout", verifyUser, UserController.logoutUser);
 // get single user by email
-router.post("/get-user", UserController.getUserByEmail);
+router.post("/get-user", verifyUser, UserController.getUserByEmail);
 // get single user by id
-router.post("/find-user", UserController.getUserById);
+router.post("/find-user", verifyUser, UserController.getUserById);
 // get all users
 router.get("/all-users", UserController.getAllUsers);
 // update user
@@ -28,8 +28,9 @@ router.patch(
   ]),
   UserController.updateUser
 );
-
 // delete user
 router.patch("/delete-user/:email", UserController.deleteUser);
+// follow user
+router.patch("/follow-user", verifyUser, UserController.toggleFollow);
 
 export const userRoutes = router;
