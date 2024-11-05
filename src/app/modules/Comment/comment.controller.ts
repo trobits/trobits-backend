@@ -1,7 +1,12 @@
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { CommentServices } from "./comment.service";
-import { createCommentSchema, updateCommentSchema } from "./comment.validation";
+import {
+  addOrRemoveLikeSchema,
+  createCommentSchema,
+  deleteCommentSchema,
+  updateCommentSchema,
+} from "./comment.validation";
 
 const createComment = catchAsync(async (req, res) => {
   const payload = createCommentSchema.parse(req.body);
@@ -25,4 +30,31 @@ const updateComment = catchAsync(async (req, res) => {
   });
 });
 
-export const CommentControllers = { createComment, updateComment };
+const deleteComment = catchAsync(async (req, res) => {
+  const payload = deleteCommentSchema.parse(req.body);
+  const deletedComment = await CommentServices.deleteComment(payload);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Comment deleted successfully",
+    data: {},
+  });
+});
+
+const addOrRemoveLike = catchAsync(async (req, res) => {
+  const payload = addOrRemoveLikeSchema.parse(req.body);
+  const addOrRemoveLike = await CommentServices.addOrRemoveLike(payload);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Comment updated successfully.",
+    data: addOrRemoveLike,
+  });
+});
+
+export const CommentControllers = {
+  createComment,
+  updateComment,
+  deleteComment,
+  addOrRemoveLike,
+};

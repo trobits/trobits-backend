@@ -13,4 +13,14 @@ const updateCommentSchema = z
   })
   .strict();
 
-export { createCommentSchema,updateCommentSchema };
+const deleteCommentSchema = z.object({
+  id: z.string(),
+  authorId: z.string(),
+});
+
+const addOrRemoveLikeSchema = z.object({
+  id: z.string(),
+  authorId: z.string(),
+});
+
+export { createCommentSchema, updateCommentSchema,deleteCommentSchema,addOrRemoveLikeSchema };

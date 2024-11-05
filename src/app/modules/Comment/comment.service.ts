@@ -61,7 +61,94 @@ const updateComment = async (payload: Partial<Comment>) => {
   return updatedComment;
 };
 
+const deleteComment = async (payload: Partial<Comment>) => {
+  // check for user validation
+  const isUserExist = await prisma.comment.findFirst({
+    where: {
+      authorId: payload.authorId,
+    },
+  });
+  if (!isUserExist) {
+    throw new ApiError(400, "User does not exist with this ID");
+  }
+  // check for comment validation
+  const isCommentExist = await prisma.comment.findUnique({
+    where: { id: payload.id },
+  });
+  if (!isCommentExist) {
+    throw new ApiError(404, "Comment not found");
+  }
+  const deletedComment = await prisma.comment.delete({
+    where: { id: payload.id },
+  });
+  if (!deletedComment) {
+    throw new ApiError(500, "Error deleting comment");
+  }
+  return true;
+};
+
+const addOrRemoveLike = async (payload: Partial<Comment>) => {
+  // check for user validation
+  const isUserExist = await prisma.comment.findFirst({
+    where: {
+      authorId: payload.authorId,
+    },
+  });
+  if (!isUserExist) {
+    throw new ApiError(400, "User does not exist with this ID");
+  }
+  // check for comment validation
+  const comment = await prisma.comment.findUnique({
+    where: { id: payload.id },
+  });
+  if (!comment) {
+    throw new ApiError(404, "Comment not found");
+  }
+  // increase comment like
+  if (!comment.likers.includes(payload.authorId as string)) {
+    const updatedComment =await prisma.comment.update({
+      where: {
+        id: payload.id,
+      },
+      data: {
+        likers: {
+          push: payload.authorId,
+        },
+        likeCount: {
+          increment: 1,
+        },
+      },
+    });
+    if (!updatedComment) {
+      throw new ApiError(500, "Error updating comment");
+    }
+    return updatedComment;
+  }
+  // decrease comment like
+  if (comment.likers.includes(payload.authorId as string)) {
+    const updatedComment =await prisma.comment.update({
+      where: {
+        id: payload.id,
+      },
+      data: {
+        likers: comment.likers.filter(
+          (likerId) => likerId !== payload.authorId
+        ),
+        likeCount: {
+          decrement: 1,
+        },
+      },
+    });
+    if (!updatedComment) {
+      throw new ApiError(500, "Error updating comment");
+    }
+    return updatedComment;
+  }
+};
+
 export const CommentServices = {
   createComment,
-  updateComment
+  updateComment,
+  deleteComment,
+  addOrRemoveLike,
 };
