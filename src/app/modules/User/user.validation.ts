@@ -38,6 +38,8 @@ const updateUserSchema = z.object({
   role: z.enum(["ADMIN"]).optional(),
 });
 
+
+
 export const userValidation = {
   createUserSchema,
   updateUserSchema,

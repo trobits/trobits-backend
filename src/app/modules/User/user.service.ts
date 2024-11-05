@@ -139,13 +139,13 @@ const getUserByEmail = async (email: string) => {
     //   profileImage: true,
     //   isDeleted: true,
     // },
-    include:{
-      posts:{
-        include:{
-          comments:true
-        }
-      }
-    }
+    include: {
+      posts: {
+        include: {
+          comments: true,
+        },
+      },
+    },
   });
   if (!user) {
     throw new ApiError(404, "User not found");
@@ -167,7 +167,6 @@ const getUserById = async (id: string) => {
     //   profileImage: true,
     //   isDeleted: true,
     // },
-    
   });
   if (!user) {
     throw new ApiError(404, "User not found");
@@ -259,6 +258,82 @@ const deleteUser = async (email: string) => {
   return deletedUser;
 };
 
+const toggleFollow = async (payload: {
+  followerId: string;
+  followedId: string;
+}) => {
+  const { followerId, followedId } = payload;
+
+  // Check for required fields
+  if (!followerId || !followedId) {
+    throw new ApiError(400, "FollowerId and FollowedId are required!");
+  }
+
+  // Prevent user from following themselves
+  if (followerId === followedId) {
+    throw new ApiError(400, "You cannot follow yourself.");
+  }
+
+  // Check if the follower exists
+  const follower = await prisma.user.findUnique({
+    where: { id: followerId },
+  });
+  if (!follower) {
+    throw new Error("Follower does not exist");
+  }
+
+  // Check if the followed user exists
+  const followed = await prisma.user.findUnique({
+    where: { id: followedId },
+  });
+  if (!followed) {
+    throw new Error("User to be followed or unfollowed does not exist");
+  }
+
+  const isFollowing = follower.following.includes(followedId);
+
+  if (isFollowing) {
+    // If currently following, unfollow the user
+    await prisma.user.update({
+      where: { id: followerId },
+      data: {
+        following: follower.following.filter((id) => id !== followedId), // Remove from following
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: followedId },
+      data: {
+        followers: followed.followers.filter((id) => id !== followerId), // Remove from followers
+      },
+    });
+
+    return { message: "Successfully unfollowed the user." };
+  } else {
+    // If not following, follow the user
+    await prisma.user.update({
+      where: { id: followerId },
+      data: {
+        following: {
+          push: followedId, // Add to following
+        },
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: followedId },
+      data: {
+        followers: {
+          push: followerId, // Add to followers
+        },
+      },
+    });
+
+    return { message: "Successfully followed the user." };
+  }
+};
+
+
 export const UserService = {
   createUser,
   loginUser,
@@ -268,4 +343,5 @@ export const UserService = {
   getUserById,
   getAllUsers,
   deleteUser,
+  toggleFollow,
 };

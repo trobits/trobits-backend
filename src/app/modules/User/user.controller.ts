@@ -48,7 +48,6 @@ const getAllUsers = catchAsync(async (req, res) => {
   });
 });
 
-
 const updateUser = catchAsync(async (req, res) => {
   const { email } = req.params;
   const payload = req.body;
@@ -115,6 +114,17 @@ const logoutUser = catchAsync(async (req, res) => {
   });
 });
 
+const toggleFollow = catchAsync(async (req, res) => {
+  const payload = req.body;
+  const follower = UserService.toggleFollow(payload);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User followed successfully!",
+    data: follower,
+  });
+});
+
 export const UserController = {
   createUser,
   loginUser,
@@ -124,4 +134,5 @@ export const UserController = {
   updateUser,
   getAllUsers,
   deleteUser,
+  toggleFollow
 };
