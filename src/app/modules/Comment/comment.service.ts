@@ -1,7 +1,7 @@
 import { Comment } from "@prisma/client";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
-
+// create comment
 const createComment = async (payload: Partial<Comment>) => {
   // Check for user validation
   const isUserExist = await prisma.user.findUnique({
@@ -41,6 +41,7 @@ const createComment = async (payload: Partial<Comment>) => {
   return newComment;
 };
 
+// update comment
 const updateComment = async (payload: Partial<Comment>) => {
   // check for comment validation
   const isCommentExist = await prisma.comment.findUnique({
@@ -60,7 +61,7 @@ const updateComment = async (payload: Partial<Comment>) => {
   }
   return updatedComment;
 };
-
+// delete comment
 const deleteComment = async (payload: Partial<Comment>) => {
   // check for user validation
   const isUserExist = await prisma.comment.findFirst({
@@ -87,11 +88,12 @@ const deleteComment = async (payload: Partial<Comment>) => {
   return true;
 };
 
+// add or remove like
 const addOrRemoveLike = async (payload: Partial<Comment>) => {
   // check for user validation
-  const isUserExist = await prisma.comment.findFirst({
+  const isUserExist = await prisma.user.findUnique({
     where: {
-      authorId: payload.authorId,
+      id: payload.authorId,
     },
   });
   if (!isUserExist) {
@@ -106,7 +108,7 @@ const addOrRemoveLike = async (payload: Partial<Comment>) => {
   }
   // increase comment like
   if (!comment.likers.includes(payload.authorId as string)) {
-    const updatedComment =await prisma.comment.update({
+    const updatedComment = await prisma.comment.update({
       where: {
         id: payload.id,
       },
@@ -126,7 +128,7 @@ const addOrRemoveLike = async (payload: Partial<Comment>) => {
   }
   // decrease comment like
   if (comment.likers.includes(payload.authorId as string)) {
-    const updatedComment =await prisma.comment.update({
+    const updatedComment = await prisma.comment.update({
       where: {
         id: payload.id,
       },
@@ -146,9 +148,70 @@ const addOrRemoveLike = async (payload: Partial<Comment>) => {
   }
 };
 
+// add or remove dislike
+const addOrRemoveDisike = async (payload: Partial<Comment>) => {
+  // check for user validation
+  const isUserExist = await prisma.user.findUnique({
+    where: {
+      id: payload.authorId,
+    },
+  });
+  if (!isUserExist) {
+    throw new ApiError(400, "User does not exist with this ID");
+  }
+  // check for comment validation
+  const comment = await prisma.comment.findUnique({
+    where: { id: payload.id },
+  });
+  if (!comment) {
+    throw new ApiError(404, "Comment not found");
+  }
+  // increase comment like
+  if (!comment.dislikers.includes(payload.authorId as string)) {
+    const updatedComment = await prisma.comment.update({
+      where: {
+        id: payload.id,
+      },
+      data: {
+        dislikers: {
+          push: payload.authorId,
+        },
+        dislikeCount: {
+          increment: 1,
+        },
+      },
+    });
+    if (!updatedComment) {
+      throw new ApiError(500, "Error updating comment");
+    }
+    return updatedComment;
+  }
+  // decrease comment like
+  if (comment.dislikers.includes(payload.authorId as string)) {
+    const updatedComment = await prisma.comment.update({
+      where: {
+        id: payload.id,
+      },
+      data: {
+        dislikers: comment.dislikers.filter(
+          (dislikerId) => dislikerId !== payload.authorId
+        ),
+        dislikeCount: {
+          decrement: 1,
+        },
+      },
+    });
+    if (!updatedComment) {
+      throw new ApiError(500, "Error updating comment");
+    }
+    return updatedComment;
+  }
+};
+
 export const CommentServices = {
   createComment,
   updateComment,
   deleteComment,
   addOrRemoveLike,
+  addOrRemoveDisike,
 };

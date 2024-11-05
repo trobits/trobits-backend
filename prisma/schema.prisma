@@ -52,6 +52,7 @@ model Comment {
   postId       String   @db.ObjectId
   post         Post     @relation("PostComments", fields: [postId], references: [id])
   likers       String[] @db.ObjectId
+  dislikers       String[] @db.ObjectId
   likeCount    Int      @default(0)
   dislikeCount Int      @default(0)
 
@@ -66,7 +67,8 @@ model Post {
   authorId  String    @db.ObjectId
   author    User      @relation("UserPosts", fields: [authorId], references: [id])
   image     String?
-  likers       String[]  @db.ObjectId
+  likeCount Int       @default(0)
+  likers    String[]  @db.ObjectId
   comments  Comment[] @relation("PostComments")
   topicId   String?   @db.ObjectId
   topic     Topic?    @relation("TopicPosts", fields: [topicId], references: [id])
