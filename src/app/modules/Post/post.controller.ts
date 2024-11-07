@@ -2,7 +2,11 @@ import { Request, Response } from "express";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { PostServices } from "./post.service";
-import { addOrRemoveLikeSchema, CreatePostSchema, UpdatePostSchema } from "./post.validation";
+import {
+  addOrRemoveLikeSchema,
+  CreatePostSchema,
+  UpdatePostSchema,
+} from "./post.validation";
 
 const createPost = catchAsync(async (req: Request, res: Response) => {
   const postImage = req.file?.path || "";
@@ -60,10 +64,36 @@ const addOrRemoveLike = catchAsync(async (req, res) => {
   });
 });
 
+const getAllPostsByTopicId = catchAsync(async (req, res) => {
+  const topicId = req.params.topicId;
+  const posts = await PostServices.getAllPostsByTopicId(topicId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Posts fetched successfully",
+    data: posts,
+  });
+});
+
+// get single post by postId
+
+const getPostById = catchAsync(async (req, res) => {
+  const postId = req.params.id;
+  const post = await PostServices.getSinglePost(postId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Post fetched successfully",
+    data: post,
+  });
+});
+
 export const PostControllers = {
   createPost,
   getAllPost,
   updatePost,
   deletePost,
-  addOrRemoveLike
+  addOrRemoveLike,
+  getAllPostsByTopicId,
+  getPostById
 };

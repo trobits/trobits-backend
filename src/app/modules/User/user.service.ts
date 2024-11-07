@@ -6,6 +6,8 @@ import { jwtHelpers } from "../../../helpars/jwtHelpers";
 import prisma from "../../../shared/prisma";
 import bcrypt from "bcrypt";
 import IUser from "./user.interface";
+import path from "path";
+import { fileUploader } from "../../../utils/uploadFileOnDigitalOcean";
 
 // create user
 const createUser = async (payload: Partial<IUser>) => {
@@ -17,7 +19,7 @@ const createUser = async (payload: Partial<IUser>) => {
   if (existingUser) {
     throw new ApiError(400, "User already exists with this email address");
   }
-  const userRole = (payload.role as Partial<Role>) || Role.ADMIN;
+  const userRole = (payload.role as Partial<Role>) || Role.USER;
   const hashedPassword: string = await bcrypt.hash(
     payload.password as string,
     12
@@ -33,13 +35,14 @@ const createUser = async (payload: Partial<IUser>) => {
       isDeleted: false,
       refreshToken: "",
     },
-    // select: {
-    //   id: true,
-    //   firstName: true,
-    //   lastName: true,
-    //   email: true,
-    //   profileImage: true,
-    // },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      profileImage: true,
+      role: true,
+    },
   });
   return user;
 };
@@ -61,7 +64,7 @@ const loginUser = async (payload: Partial<IUser>) => {
   if (!isPasswordValid) {
     throw new ApiError(401, "Invalid password");
   }
-
+  // get access token
   const accessToken = jwtHelpers.generateToken(
     {
       id: user.id,
@@ -78,7 +81,7 @@ const loginUser = async (payload: Partial<IUser>) => {
     {
       id: user.id,
     },
-    config.jwt.jwt_secret as string,
+    config.jwt.refresh_token_secret as string,
     config.jwt.refresh_token_expires_in as string
   );
   // update db with access token
@@ -86,15 +89,18 @@ const loginUser = async (payload: Partial<IUser>) => {
     where: {
       id: user.id,
     },
-    // select: {
-    //   firstName: true,
-    //   lastName: true,
-    //   email: true,
-    //   profileImage: true,
-    //   isDeleted: true,
-    //   role: true,
-    //   refreshToken: true,
-    // },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      profileImage: true,
+      isDeleted: true,
+      role: true,
+      coverImage: true,
+      followers: true,
+      following: true,
+    },
     data: {
       refreshToken: refreshToken,
     },
@@ -107,6 +113,42 @@ const loginUser = async (payload: Partial<IUser>) => {
   };
 };
 
+// refresh access token
+const refreshAccessToken = async (refreshToken: string) => {
+  const decodedToken = jwtHelpers.verifyToken(
+    refreshToken,
+    config.jwt.refresh_token_secret as string
+  );
+  if (!decodedToken) {
+    throw new ApiError(401, "Invalid Refresh Token");
+  }
+  const user = await prisma.user.findUnique({
+    where: {
+      id: decodedToken.id,
+    },
+  });
+  // check for user
+  if (!user) {
+    throw new ApiError(401, "Invalid Access Token");
+  }
+  // check for refresh token validation
+  if (user.refreshToken !== refreshToken) {
+    throw new ApiError(401, "Refresh Token has expired or used!");
+  }
+  // generate new access token
+  const accessToken = jwtHelpers.generateToken(
+    {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      role: user.role,
+    },
+    config.jwt.jwt_secret as string,
+    config.jwt.expires_in as string
+  );
+  return accessToken;
+};
+
 // logout user
 const logoutUser = async (id: string) => {
   const user = prisma.user.findUnique({
@@ -114,7 +156,9 @@ const logoutUser = async (id: string) => {
       id: id,
     },
   });
-
+  if (!user) {
+    throw new ApiError(401, "Invalid Access Token");
+  }
   prisma.user.update({
     where: {
       id,
@@ -123,6 +167,7 @@ const logoutUser = async (id: string) => {
       refreshToken: null,
     },
   });
+  return true;
 };
 
 // get user by email
@@ -131,20 +176,23 @@ const getUserByEmail = async (email: string) => {
     where: {
       email: email,
     },
-    // select: {
-    //   id: true,
-    //   firstName: true,
-    //   lastName: true,
-    //   email: true,
-    //   profileImage: true,
-    //   isDeleted: true,
-    // },
-    include: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      profileImage: true,
+      isDeleted: true,
       posts: {
         include: {
           comments: true,
         },
       },
+      coverImage: true,
+      role: true,
+      followers: true,
+      following: true,
+      comments: true,
     },
   });
   if (!user) {
@@ -158,15 +206,24 @@ const getUserById = async (id: string) => {
     where: {
       id: id,
     },
-
-    // select: {
-    //   id: true,
-    //   firstName: true,
-    //   lastName: true,
-    //   email: true,
-    //   profileImage: true,
-    //   isDeleted: true,
-    // },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      profileImage: true,
+      isDeleted: true,
+      posts: {
+        include: {
+          comments: true,
+        },
+      },
+      coverImage: true,
+      role: true,
+      followers: true,
+      following: true,
+      comments: true,
+    },
   });
   if (!user) {
     throw new ApiError(404, "User not found");
@@ -179,13 +236,24 @@ const getAllUsers = async () => {
     where: {
       isDeleted: false,
     },
-    // select: {
-    //   id: true,
-    //   firstName: true,
-    //   lastName: true,
-    //   email: true,
-    //   profileImage: true,
-    // },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      profileImage: true,
+      isDeleted: true,
+      posts: {
+        include: {
+          comments: true,
+        },
+      },
+      coverImage: true,
+      role: true,
+      followers: true,
+      following: true,
+      comments: true,
+    },
   });
   return users;
 };
@@ -205,31 +273,52 @@ const updateUser = async (
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-  // check if the given data already exists
-  // Delete existing profile image if a new one is provided
+
+  // upload profile image
+  // upload image
+  let profileImageUrl = "";
+  // Upload image to DigitalOcean Spaces and get the cloud URL
   if (profileImageLocalPath) {
-    const existingProfileImage = user.profileImage;
-    if (existingProfileImage) {
-      fs.unlinkSync(existingProfileImage);
+    try {
+      const uploadResponse = await fileUploader.uploadToDigitalOcean({
+        path: profileImageLocalPath,
+        originalname: path.basename(profileImageLocalPath),
+        mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
+      } as Express.Multer.File);
+      profileImageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+    } catch (error) {
+      console.error("Failed to upload image to DigitalOcean:", error);
+      throw new ApiError(500, "Failed to upload image to DigitalOcean");
     }
   }
 
-  // Delete existing cover image if a new one is provided
+  // upload profile image
+  // upload image
+  let coverImageUrl = "";
+  // Upload image to DigitalOcean Spaces and get the cloud URL
   if (coverImageLocalPath) {
-    const existingCoverImage = user.coverImage;
-    if (existingCoverImage) {
-      fs.unlinkSync(existingCoverImage);
+    try {
+      const uploadResponse = await fileUploader.uploadToDigitalOcean({
+        path: coverImageLocalPath,
+        originalname: path.basename(coverImageLocalPath),
+        mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
+      } as Express.Multer.File);
+      coverImageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+    } catch (error) {
+      console.error("Failed to upload image to DigitalOcean:", error);
+      throw new ApiError(500, "Failed to upload image to DigitalOcean");
     }
   }
 
+  
   // Update the user
   const updatedUser = await prisma.user.update({
     where: { email: email },
     data: {
       firstName: payload?.firstName || undefined,
       lastName: payload.lastName || undefined,
-      profileImage: profileImageLocalPath || undefined,
-      coverImage: coverImageLocalPath || undefined,
+      profileImage: profileImageUrl || undefined,
+      coverImage: coverImageUrl || undefined,
     },
   });
 
@@ -333,7 +422,6 @@ const toggleFollow = async (payload: {
   }
 };
 
-
 export const UserService = {
   createUser,
   loginUser,
@@ -344,4 +432,5 @@ export const UserService = {
   getAllUsers,
   deleteUser,
   toggleFollow,
+  refreshAccessToken,
 };

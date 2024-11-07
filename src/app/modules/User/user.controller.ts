@@ -92,11 +92,22 @@ const loginUser = catchAsync(async (req, res) => {
     httpOnly: true,
     secure: true,
   };
-  res.cookie("accessToken", accessToken, options).status(200).json({
+  res.cookie("refreshToken", refreshToken, options).status(200).json({
     success: true,
     message: "user loged in successfully",
-    token: { accessToken, refreshToken },
+    token: { accessToken },
     data: loggedInUser,
+  });
+});
+
+const refreshAccessToken = catchAsync(async (req, res) => {
+  const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  const accessToken = await UserService.refreshAccessToken(refreshToken);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Access token refreshed successfully",
+    data: { accessToken },
   });
 });
 
@@ -134,5 +145,6 @@ export const UserController = {
   updateUser,
   getAllUsers,
   deleteUser,
-  toggleFollow
+  toggleFollow,
+  refreshAccessToken,
 };

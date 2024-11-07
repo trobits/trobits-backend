@@ -1,41 +1,104 @@
 import prisma from "../../../shared/prisma";
 import ITopic from "./topic.interface";
 import ApiError from "../../../errors/ApiErrors";
+import { fileUploader } from "../../../utils/uploadFileOnDigitalOcean";
+import path from "path";
+
 
 const createTopic = async (
-  topicCoverImageLocalpath: string,
+  topicCoverImageLocalPath: string, // Local path of the uploaded image
   payload: Partial<ITopic>
 ) => {
   const authorId = payload.topicAuthor;
   if (!authorId) {
     throw new ApiError(400, "Author id is required");
   }
+
+  // Check if the author exists
   const author = await prisma.user.findUnique({
     where: { id: payload.topicAuthor },
   });
   if (!author) {
     throw new ApiError(404, "Author not found with the given authorId");
   }
+
+  // upload image
+  let imageUrl = ""
+  // Upload image to DigitalOcean Spaces and get the cloud URL
+ if(topicCoverImageLocalPath){
+   try {
+     const uploadResponse = await fileUploader.uploadToDigitalOcean({
+       path: topicCoverImageLocalPath,
+       originalname: path.basename(topicCoverImageLocalPath),
+       mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
+     } as Express.Multer.File);
+     imageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+   } catch (error) {
+     console.error("Failed to upload image to DigitalOcean:", error);
+     throw new ApiError(500, "Failed to upload image to DigitalOcean");
+   }
+ }
+
+  // Create the topic in the database with the cloud URL
   const createTopic = await prisma.topic.create({
     data: {
       title: payload.title || "",
       description: payload.description || "",
-      image: topicCoverImageLocalpath || undefined,
+      image: imageUrl, // Store the cloud URL instead of the local path
       topicAuthor: authorId,
     },
   });
+
   if (!createTopic) {
     throw new ApiError(500, "Failed to create a new topic");
   }
+
   return createTopic;
 };
 
 const getAllTopics = async () => {
-  const topics = await prisma.topic.findMany({});
+  const topics = await prisma.topic.findMany({
+    include: {
+      posts: {
+        include: {
+          comments: {
+            include: {
+              author: true,
+            },
+          },
+        },
+      },
+    },
+  });
   if (!topics) {
     throw new ApiError(500, "Failed to retrieve all topics");
   }
   return topics;
+};
+
+const getTopicById = async (topicId:string) => {
+  const isTopicExist = await prisma.topic.findUnique({where:{id:topicId}});
+  if (!isTopicExist) {
+    throw new ApiError(404, "Topic not found with the given id");
+  }
+  const topic = await prisma.topic.findFirst({
+    where:{id:topicId},
+    include: {
+      posts: {
+        include: {
+          comments: {
+            include: {
+              author: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!topic) {
+    throw new ApiError(500, "Failed to retrieve topic");
+  }
+  return topic;
 };
 
 const getTopicsByAuthor = async (authorId: string) => {
@@ -94,7 +157,8 @@ const deleteTopic = async (topicId: string) => {
 export const TopicServices = {
   createTopic,
   getAllTopics,
+  getTopicById,
   getTopicsByAuthor,
   updateTopic,
-  deleteTopic
+  deleteTopic,
 };
