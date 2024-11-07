@@ -9,8 +9,9 @@ const router = Router();
 router.post("/create-user", UserController.createUser);
 // login user
 router.post("/login", UserController.loginUser);
+// refresh accessToken with refresh token
+router.get("/access-token", UserController.refreshAccessToken);
 // logout user
-// here need to write own auth function where no role will needed
 router.get("/logout", verifyUser, UserController.logoutUser);
 // get single user by email
 router.post("/get-user", verifyUser, UserController.getUserByEmail);

@@ -13,6 +13,8 @@ router.post(
 
 // get all topics
 router.get("/topics", TopicControllers.getAllTopics);
+// get topic by id
+router.get("/:topicId", TopicControllers.getTopicById);
 
 // get topic by author
 router.get("/author-topics/:authorId", TopicControllers.getTopicsByAuthor);

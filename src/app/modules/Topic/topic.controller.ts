@@ -26,6 +26,17 @@ const getAllTopics = catchAsync(async (req, res) => {
   });
 });
 
+const getTopicById = catchAsync(async (req, res) => {
+  const topicId = req.params.topicId;
+  const topic = await TopicServices.getTopicById(topicId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "topic retrieved successfully",
+    data: topic,
+  });
+});
+
 const getTopicsByAuthor = catchAsync(async (req, res) => {
   const authorId = req.params.authorId;
   console.log(authorId);
@@ -64,6 +75,7 @@ const deleteTopic = catchAsync(async (req, res) => {
 export const TopicControllers = {
   createTopic,
   getAllTopics,
+  getTopicById,
   getTopicsByAuthor,
   updateTopic,
   deleteTopic,
