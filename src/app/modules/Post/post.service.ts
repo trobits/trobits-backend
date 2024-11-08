@@ -59,6 +59,7 @@ const getAllPost = async () => {
   const posts = await prisma.post.findMany({
     include: {
       author: true,
+      topic:true,
       comments: {
         include: {
           author: true,
@@ -224,7 +225,33 @@ const getSinglePost = async (postId: string) => {
         include: {
           author: true,
         },
-        orderBy:{createdAt:"desc"}
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+  if (!post) {
+    throw new ApiError(404, "Post not found");
+  }
+  return post;
+};
+
+const getPostByAuthorId = async (authorId: string) => {
+  // check for user validation
+  const isUserExist = await prisma.user.findUnique({
+    where: { id: authorId },
+  });
+  if (!isUserExist) {
+    throw new ApiError(400, "User does not exist with this ID");
+  }
+  const post = await prisma.post.findMany({
+    where: { authorId: authorId },
+    include: {
+      author: true,
+      comments: {
+        include: {
+          author: true,
+        },
+        orderBy: { createdAt: "desc" },
       },
     },
   });
@@ -242,4 +269,5 @@ export const PostServices = {
   addOrRemoveLike,
   getAllPostsByTopicId,
   getSinglePost,
+  getPostByAuthorId,
 };
