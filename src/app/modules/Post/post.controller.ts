@@ -87,6 +87,18 @@ const getPostById = catchAsync(async (req, res) => {
     data: post,
   });
 });
+// get single post by postId
+
+const getPostByAuthorId = catchAsync(async (req, res) => {
+  const authorId = req.params.authorId;
+  const post = await PostServices.getPostByAuthorId(authorId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Post fetched successfully",
+    data: post,
+  });
+});
 
 export const PostControllers = {
   createPost,
@@ -95,5 +107,6 @@ export const PostControllers = {
   deletePost,
   addOrRemoveLike,
   getAllPostsByTopicId,
-  getPostById
+  getPostById,
+  getPostByAuthorId,
 };
