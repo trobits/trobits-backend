@@ -28,8 +28,8 @@ const getUserByEmail = catchAsync(async (req, res) => {
 });
 
 const getUserById = catchAsync(async (req, res) => {
-  const id = req.body.id;
-  const result = await UserService.getUserById(id);
+  const userId = req.params.userId;
+  const result = await UserService.getUserById(userId);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -136,6 +136,16 @@ const toggleFollow = catchAsync(async (req, res) => {
   });
 });
 
+const recommendedUser = catchAsync(async (req, res) => {
+  const result = await UserService.getAllUsers();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "All users fetched successfully!",
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   loginUser,
@@ -147,4 +157,5 @@ export const UserController = {
   deleteUser,
   toggleFollow,
   refreshAccessToken,
+  recommendedUser,
 };

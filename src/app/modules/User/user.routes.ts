@@ -57,9 +57,10 @@ router.get("/logout", verifyUser, UserController.logoutUser);
 // get single user by email
 router.post("/get-user",  UserController.getUserByEmail);
 // get single user by id
-router.post("/find-user",  UserController.getUserById);
+router.get("/singleUser/:userId",  UserController.getUserById);
 // get all users
 router.get("/all-users", UserController.getAllUsers);
+router.get("/recommended-users", UserController.recommendedUser);
 // update user
 router.patch(
   "/update-user/:email",
