@@ -5,20 +5,65 @@ import IPost from "./post.interface";
 import { fileUploader } from "../../../utils/uploadFileOnDigitalOcean";
 import path from "path";
 
+
+
+// const createPost = async (payload: Partial<IPost>, postImage: string) => {
+//   // check user validation
+//   const isAuthorExist = await prisma.user.findUnique({
+//     where: { id: payload.authorId },
+//   });
+//   if (!isAuthorExist) {
+//     throw new ApiError(404, "Author not found");
+//   }
+//   // check topic validation
+//   const isTopicExist = await prisma.topic.findUnique({
+//     where: { id: payload.topicId },
+//   });
+//   if (!isTopicExist) {
+//     throw new ApiError(404, "Topic not found");
+//   }
+
+//   let imageUrl = "";
+//   // Upload image to DigitalOcean Spaces and get the cloud URL
+//   if (postImage) {
+//     try {
+//       const uploadResponse = await fileUploader.uploadToDigitalOcean({
+//         path: postImage,
+//         originalname: path.basename(postImage),
+//         mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
+//       } as Express.Multer.File);
+//       imageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+//     } catch (error) {
+//       console.error("Failed to upload image to DigitalOcean:", error);
+//       throw new ApiError(500, "Failed to upload image to DigitalOcean");
+//     }
+//   }
+
+//   const newPost = await prisma.post.create({
+//     data: {
+//       content: payload.content as string,
+//       authorId: payload.authorId as string,
+//       image: imageUrl || "",
+//       topicId: payload.topicId,
+//     },
+//     include: {
+//       author: true,
+//       topic: true,
+//     },
+//   });
+//   if (!newPost) {
+//     throw new ApiError(500, "Failed to create post");
+//   }
+//   return newPost;
+// };
+
 const createPost = async (payload: Partial<IPost>, postImage: string) => {
-  // check user validation
-  const isAuthorExis = await prisma.user.findUnique({
+  // Check user validation
+  const isAuthorExist = await prisma.user.findUnique({
     where: { id: payload.authorId },
   });
-  if (!isAuthorExis) {
+  if (!isAuthorExist) {
     throw new ApiError(404, "Author not found");
-  }
-  // check topic validation
-  const isTopicExist = await prisma.topic.findUnique({
-    where: { id: payload.topicId },
-  });
-  if (!isTopicExist) {
-    throw new ApiError(404, "Topic not found");
   }
 
   let imageUrl = "";
@@ -37,12 +82,13 @@ const createPost = async (payload: Partial<IPost>, postImage: string) => {
     }
   }
 
+  // Create post with or without topic
   const newPost = await prisma.post.create({
     data: {
       content: payload.content as string,
       authorId: payload.authorId as string,
       image: imageUrl || "",
-      topicId: payload.topicId,
+      topicId: payload.topicId || null, // If no topicId provided, it will be null
     },
     include: {
       author: true,
@@ -55,54 +101,139 @@ const createPost = async (payload: Partial<IPost>, postImage: string) => {
   return newPost;
 };
 
+
+// const getAllPost = async () => {
+//   const posts = await prisma.post.findMany({
+//     include: {
+//       author: true,
+//       topic:true,
+//       comments: {
+//         include: {
+//           author: true,
+//         },
+//       },
+//     },
+//     orderBy:[{comments:{
+//       _count:"desc"
+//     }},
+  
+//   ],
+//   });
+//   if (!posts) {
+//     throw new ApiError(500, "Failed to fetch posts");
+//   }
+//   return posts;
+// };
+
+
+
+// const updatePost = async (payload: Partial<IPost>, postImage: string) => {
+//   const isPostExist = await prisma.post.findUnique({
+//     where: { id: payload.id },
+//   });
+//   // if post not exist
+//   if (!isPostExist) {
+//     throw new ApiError(404, "Post not found");
+//   }
+//   // upload image
+//   let imageUrl = "";
+//   // Upload image to DigitalOcean Spaces and get the cloud URL
+//   if (postImage) {
+//     try {
+//       const uploadResponse = await fileUploader.uploadToDigitalOcean({
+//         path: postImage,
+//         originalname: path.basename(postImage),
+//         mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
+//       } as Express.Multer.File);
+//       imageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+//     } catch (error) {
+//       console.error("Failed to upload image to DigitalOcean:", error);
+//       throw new ApiError(500, "Failed to upload image to DigitalOcean");
+//     }
+//   }
+//   const updatePost = await prisma.post.update({
+//     where: { id: payload.id },
+//     data: {
+//       content: payload.content || undefined,
+//       image: imageUrl || undefined,
+//     },
+//     include: {
+//       topic: true,
+//       author: true,
+//     },
+//   });
+
+//   if (!updatePost) {
+//     throw new ApiError(500, "Failed to update post");
+//   }
+//   return updatePost;
+// };
+
 const getAllPost = async () => {
+  // Fetch posts with the necessary fields and counts
   const posts = await prisma.post.findMany({
     include: {
       author: true,
-      topic:true,
+      topic: true,
       comments: {
         include: {
           author: true,
         },
       },
     },
-    orderBy: { createdAt: "desc" },
   });
+
   if (!posts) {
     throw new ApiError(500, "Failed to fetch posts");
   }
-  return posts;
+
+  // Calculate score for each post and sort by score in descending order
+  const sortedPosts = posts
+    .map((post) => ({
+      ...post,
+      commentCount: post.comments.length, // Count comments for each post
+      score: post.comments.length * 2 + post.likeCount, // Calculate the score
+    }))
+    .sort((a, b) => b.score - a.score); // Sort by score in descending order
+
+  return sortedPosts;
 };
+
+
+
 
 const updatePost = async (payload: Partial<IPost>, postImage: string) => {
   const isPostExist = await prisma.post.findUnique({
     where: { id: payload.id },
   });
-  // if post not exist
+  // If post not exist
   if (!isPostExist) {
     throw new ApiError(404, "Post not found");
   }
-  // upload image
+
+  // Upload image if provided
   let imageUrl = "";
-  // Upload image to DigitalOcean Spaces and get the cloud URL
   if (postImage) {
     try {
       const uploadResponse = await fileUploader.uploadToDigitalOcean({
         path: postImage,
         originalname: path.basename(postImage),
-        mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
+        mimetype: "image/jpeg", // Adjust if needed
       } as Express.Multer.File);
-      imageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+      imageUrl = uploadResponse.Location;
     } catch (error) {
-      console.error("Failed to upload image to DigitalOcean:", error);
-      throw new ApiError(500, "Failed to upload image to DigitalOcean");
+      console.error("Failed to upload image:", error);
+      throw new ApiError(500, "Failed to upload image");
     }
   }
-  const updatePost = await prisma.post.update({
+
+  // Update the post with or without topic
+  const updatedPost = await prisma.post.update({
     where: { id: payload.id },
     data: {
       content: payload.content || undefined,
       image: imageUrl || undefined,
+      topicId: payload.topicId || null, // If no topicId provided, it will be set to null
     },
     include: {
       topic: true,
@@ -110,24 +241,56 @@ const updatePost = async (payload: Partial<IPost>, postImage: string) => {
     },
   });
 
-  if (!updatePost) {
+  if (!updatedPost) {
     throw new ApiError(500, "Failed to update post");
   }
-  return updatePost;
+
+  return updatedPost;
 };
 
+// const deletePost = async (postId: string) => {
+//   const isPostExist = await prisma.post.findUnique({ where: { id: postId } });
+//   if (!isPostExist) {
+//     throw new ApiError(400, "Post does not exist with this id!");
+//   }
+//   // check if any comment in this comment
+//   const hasComment = await prisma.comment.findFirst({
+//     where: {
+//       postId: postId,
+//     },
+//   });
+//   // delete the comment
+//   if (hasComment) {
+//     prisma.comment.delete({
+//       where: {
+//         id: hasComment.id,
+//       },
+//     });
+//   }
+//   const deletedPost = await prisma.post.delete({ where: { id: postId } });
+//   if (!deletedPost) {
+//     throw new ApiError(500, "Failed to delete post!");
+//   }
+//   return true;
+// };
+
+
+
+// Delete Post (with or without topic)
 const deletePost = async (postId: string) => {
   const isPostExist = await prisma.post.findUnique({ where: { id: postId } });
   if (!isPostExist) {
     throw new ApiError(400, "Post does not exist with this id!");
   }
-  // check if any comment in this comment
+
+  // Check if any comments exist for this post
   const hasComment = await prisma.comment.findFirst({
     where: {
       postId: postId,
     },
   });
-  // delete the comment
+
+  // Delete the comment if exists
   if (hasComment) {
     prisma.comment.delete({
       where: {
@@ -135,12 +298,16 @@ const deletePost = async (postId: string) => {
       },
     });
   }
+
+  // Delete the post
   const deletedPost = await prisma.post.delete({ where: { id: postId } });
   if (!deletedPost) {
     throw new ApiError(500, "Failed to delete post!");
   }
   return true;
 };
+
+
 
 const addOrRemoveLike = async (payload: Partial<Post>) => {
   // check for user validation

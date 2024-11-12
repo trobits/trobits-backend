@@ -100,6 +100,8 @@ const loginUser = async (payload: Partial<IUser>) => {
       coverImage: true,
       followers: true,
       following: true,
+      createdAt: true,
+      updatedAt: true,
     },
     data: {
       refreshToken: refreshToken,
@@ -223,6 +225,8 @@ const getUserById = async (id: string) => {
       followers: true,
       following: true,
       comments: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
   if (!user) {
@@ -310,7 +314,6 @@ const updateUser = async (
     }
   }
 
-  
   // Update the user
   const updatedUser = await prisma.user.update({
     where: { email: email },
@@ -352,7 +355,6 @@ const toggleFollow = async (payload: {
   followedId: string;
 }) => {
   const { followerId, followedId } = payload;
-
   // Check for required fields
   if (!followerId || !followedId) {
     throw new ApiError(400, "FollowerId and FollowedId are required!");
@@ -360,6 +362,7 @@ const toggleFollow = async (payload: {
 
   // Prevent user from following themselves
   if (followerId === followedId) {
+    return false;
     throw new ApiError(400, "You cannot follow yourself.");
   }
 
@@ -380,23 +383,21 @@ const toggleFollow = async (payload: {
   }
 
   const isFollowing = follower.following.includes(followedId);
-
   if (isFollowing) {
     // If currently following, unfollow the user
     await prisma.user.update({
       where: { id: followerId },
       data: {
-        following: follower.following.filter((id) => id !== followedId), // Remove from following
+        following: follower.following.filter((id) => id !== followedId),
       },
     });
 
     await prisma.user.update({
       where: { id: followedId },
       data: {
-        followers: followed.followers.filter((id) => id !== followerId), // Remove from followers
+        followers: followed.followers.filter((id) => id !== followerId),
       },
     });
-
     return { message: "Successfully unfollowed the user." };
   } else {
     // If not following, follow the user
@@ -404,7 +405,7 @@ const toggleFollow = async (payload: {
       where: { id: followerId },
       data: {
         following: {
-          push: followedId, // Add to following
+          push: followedId,
         },
       },
     });
@@ -413,13 +414,43 @@ const toggleFollow = async (payload: {
       where: { id: followedId },
       data: {
         followers: {
-          push: followerId, // Add to followers
+          push: followerId,
         },
       },
     });
-
     return { message: "Successfully followed the user." };
   }
+};
+
+// recommended user
+const recommendedUser = async () => {
+  const users = await prisma.user.findMany({
+    where: {
+      isDeleted: false,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      profileImage: true,
+      isDeleted: true,
+      posts: {
+        include: {
+          comments: true,
+        },
+      },
+      coverImage: true,
+      role: true,
+      followers: true,
+      following: true,
+      comments: true,
+    },
+    orderBy: {
+      followers: "desc",
+    },
+  });
+  return users;
 };
 
 export const UserService = {
@@ -433,4 +464,5 @@ export const UserService = {
   deleteUser,
   toggleFollow,
   refreshAccessToken,
+  recommendedUser,
 };
