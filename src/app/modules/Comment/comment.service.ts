@@ -1,6 +1,10 @@
 import { Comment } from "@prisma/client";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
+import { Socket } from "socket.io";
+
+
+
 // create comment
 const createComment = async (payload: Partial<Comment>) => {
   // Check for user validation
@@ -40,6 +44,58 @@ const createComment = async (payload: Partial<Comment>) => {
 
   return newComment;
 };
+
+// const createComment = async (
+//   postId: string,
+//   content: string,
+//   authorId: string,
+//   socket: Socket
+// ) => {
+//   // Check for user validation
+//   const isUserExist = await prisma.user.findUnique({
+//     where: { id: authorId },
+//   });
+//   if (!isUserExist) {
+//     throw new ApiError(400, "User does not exist with this ID");
+//   }
+
+//   // Check for post validation
+//   const isPostExist = await prisma.post.findUnique({
+//     where: { id: postId },
+//   });
+//   if (!isPostExist) {
+//     throw new ApiError(404, "Post not found");
+//   }
+
+//   // Create the comment
+//   const newComment = await prisma.comment.create({
+//     data: {
+//       content,
+//       authorId,
+//       postId,
+//     },
+//     include: {
+//       author: true,
+//     },
+//   });
+
+//   if (!newComment) {
+//     throw new ApiError(500, "Error creating comment");
+//   }
+
+//   // Notify post author if commented
+//   if (postId !== authorId) {
+//     socket.data.sendNotification(
+//       isPostExist.authorId,
+//       authorId,
+//       "Someone commented on your post.",
+//       "COMMENT"
+//     );
+//   }
+
+//   return newComment;
+// };
+
 
 // update comment
 const updateComment = async (payload: Partial<Comment>) => {

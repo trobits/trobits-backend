@@ -31,18 +31,6 @@ model User {
   @@map("users")
 }
 
-// model Like {
-//   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-//   count     Int
-//   users     String[] @db.ObjectId // Array of user IDs who liked the post
-//   postId    String?  @db.ObjectId
-//   post      Post?    @relation("PostLikes", fields: [postId], references: [id])
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-
-//   @@map("likes")
-// }
-
 model Comment {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   content      String
@@ -106,6 +94,25 @@ model Topic {
 
   @@map("topics")
 }
+
+model Notification {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId // The user to whom the notification is sent
+  senderId    String   @db.ObjectId // The user who triggered the notification
+  message     String
+  type        NotificationType
+  createdAt   DateTime @default(now())
+  isRead      Boolean  @default(false)
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  FOLLOW
+  LIKE
+  COMMENT
+}
+
 
 enum Role {
   ADMIN

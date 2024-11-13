@@ -1,4 +1,3 @@
-import fs from "fs";
 import { Role } from "@prisma/client";
 import config from "../../../config";
 import ApiError from "../../../errors/ApiErrors";
@@ -8,6 +7,7 @@ import bcrypt from "bcrypt";
 import IUser from "./user.interface";
 import path from "path";
 import { fileUploader } from "../../../utils/uploadFileOnDigitalOcean";
+import { Socket } from "socket.io";
 
 // create user
 const createUser = async (payload: Partial<IUser>) => {
@@ -350,6 +350,8 @@ const deleteUser = async (email: string) => {
   return deletedUser;
 };
 
+
+
 const toggleFollow = async (payload: {
   followerId: string;
   followedId: string;
@@ -421,6 +423,53 @@ const toggleFollow = async (payload: {
     return { message: "Successfully followed the user." };
   }
 };
+
+
+
+
+// toggle follow
+
+// const toggleFollow = async (
+//   payload: { followerId: string; followedId: string },
+//   socket: Socket
+// ) => {
+//   const { followerId, followedId } = payload;
+
+//   // Follow or unfollow logic (simplified here)
+//   const isFollowing = await prisma.user.findUnique({
+//     where: { id: followerId },
+//     select: { following: true },
+//   });
+
+//   if (isFollowing?.following.includes(followedId)) {
+//     // Unfollow logic...
+//   } else {
+//     // Follow logic
+//     await prisma.user.update({
+//       where: { id: followerId },
+//       data: {
+//         following: { push: followedId },
+//       },
+//     });
+
+//     await prisma.user.update({
+//       where: { id: followedId },
+//       data: {
+//         followers: { push: followerId },
+//       },
+//     });
+
+//     // Emit notification
+//     socket.data.sendNotification(
+//       followedId,
+//       followerId,
+//       "Someone followed you.",
+//       "FOLLOW"
+//     );
+//   }
+
+//   return { message: isFollowing ? "Unfollowed" : "Followed" };
+// };
 
 // recommended user
 const recommendedUser = async () => {
