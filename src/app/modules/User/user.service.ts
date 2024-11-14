@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { NotificationType, Role } from "@prisma/client";
 import config from "../../../config";
 import ApiError from "../../../errors/ApiErrors";
 import { jwtHelpers } from "../../../helpars/jwtHelpers";
@@ -7,7 +7,10 @@ import bcrypt from "bcrypt";
 import IUser from "./user.interface";
 import path from "path";
 import { fileUploader } from "../../../utils/uploadFileOnDigitalOcean";
-import { Socket } from "socket.io";
+
+import { sendNotification } from "../../../helpars/socketIo";
+
+// Assuming your server instance is available for passing to socketIo functio
 
 // create user
 const createUser = async (payload: Partial<IUser>) => {
@@ -350,8 +353,6 @@ const deleteUser = async (email: string) => {
   return deletedUser;
 };
 
-
-
 const toggleFollow = async (payload: {
   followerId: string;
   followedId: string;
@@ -364,7 +365,6 @@ const toggleFollow = async (payload: {
 
   // Prevent user from following themselves
   if (followerId === followedId) {
-    return false;
     throw new ApiError(400, "You cannot follow yourself.");
   }
 
@@ -385,6 +385,7 @@ const toggleFollow = async (payload: {
   }
 
   const isFollowing = follower.following.includes(followedId);
+
   if (isFollowing) {
     // If currently following, unfollow the user
     await prisma.user.update({
@@ -400,6 +401,18 @@ const toggleFollow = async (payload: {
         followers: followed.followers.filter((id) => id !== followerId),
       },
     });
+
+    if (sendNotification) {
+      await sendNotification(
+        followedId,
+        followerId,
+        `${follower.firstName + " " + follower.lastName} has unfollowed you`,
+        NotificationType.FOLLOW
+      );
+    } else {
+      console.error("sendNotification is not available.");
+    }
+
     return { message: "Successfully unfollowed the user." };
   } else {
     // If not following, follow the user
@@ -420,12 +433,21 @@ const toggleFollow = async (payload: {
         },
       },
     });
+
+    if (sendNotification) {
+      await sendNotification(
+        followedId,
+        followerId,
+        `${follower.firstName + " " + follower.lastName} has followed you`,
+        NotificationType.FOLLOW
+      );
+    } else {
+      console.error("sendNotification is not available.");
+    }
+
     return { message: "Successfully followed the user." };
   }
 };
-
-
-
 
 // toggle follow
 
@@ -502,6 +524,21 @@ const recommendedUser = async () => {
   return users;
 };
 
+const getNotificationByUserId = async (userId: string) => {
+  const notifications = await prisma.notification.findMany({
+    where: {
+      userId: userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+  if (!notifications.length) {
+    throw new ApiError(404, "No notifications found for the given user");
+  }
+  return notifications;
+};
+
 export const UserService = {
   createUser,
   loginUser,
@@ -514,4 +551,5 @@ export const UserService = {
   toggleFollow,
   refreshAccessToken,
   recommendedUser,
+  getNotificationByUserId
 };

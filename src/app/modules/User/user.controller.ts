@@ -146,6 +146,17 @@ const recommendedUser = catchAsync(async (req, res) => {
   });
 });
 
+const getNotificationByUserId = catchAsync(async (req, res) => {
+  const userId = req.params.userId;
+  const notifications = await UserService.getNotificationByUserId(userId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "All notifications fetched successfully!",
+    data: notifications,
+  });
+});
+
 export const UserController = {
   createUser,
   loginUser,
@@ -158,4 +169,5 @@ export const UserController = {
   toggleFollow,
   refreshAccessToken,
   recommendedUser,
+  getNotificationByUserId
 };
