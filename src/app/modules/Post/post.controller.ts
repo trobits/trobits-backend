@@ -7,11 +7,47 @@ import {
   CreatePostSchema,
   UpdatePostSchema,
 } from "./post.validation";
+import { PostCategory } from "@prisma/client";
+
+interface Files {
+  image?: Express.Multer.File[]; // Optional array of image files
+  video?: Express.Multer.File[]; // Optional array of video files
+}
+
+// const createPost = catchAsync(async (req: Request, res: Response) => {
+//   const postImage = req.file?.path || "";
+//   const payload = CreatePostSchema.parse(req.body);
+//   const newPost = await PostServices.createPost(payload, postImage);
+//   sendResponse(res, {
+//     statusCode: 201,
+//     success: true,
+//     message: "Post created successfully",
+//     data: newPost,
+//   });
+// });
 
 const createPost = catchAsync(async (req: Request, res: Response) => {
-  const postImage = req.file?.path || "";
   const payload = CreatePostSchema.parse(req.body);
-  const newPost = await PostServices.createPost(payload, postImage);
+  // Ensure `req.files` has the correct type
+  const files = req.files as Files;
+
+  let imageUrl: string | null = null;
+  let videoUrl: string | null = null;
+
+  // Check if image or video is provided and set their paths
+  if (files?.image && files.image.length > 0) {
+    imageUrl = files.image[0].path; // Path to uploaded image
+  }
+
+  if (files?.video && files.video.length > 0) {
+    videoUrl = files.video[0].path; // Path to uploaded video
+  }
+
+  const newPost = await PostServices.createPost(
+    payload,
+    imageUrl as string,
+    videoUrl as string
+  );
   sendResponse(res, {
     statusCode: 201,
     success: true,
@@ -20,8 +56,31 @@ const createPost = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const createVideoPost = catchAsync(async (req: Request, res: Response) => {});
+
 const getAllPost = catchAsync(async (req: Request, res: Response) => {
-  const posts = await PostServices.getAllPost();
+  console.log("route hit");
+  const category = req.params.category || "";
+  const posts = await PostServices.getAllPost(category as PostCategory);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Posts fetched successfully",
+    data: posts,
+  });
+});
+
+const getAllImagePost = catchAsync(async (req: Request, res: Response) => {
+  const posts = await PostServices.getAllImagePost();
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Posts fetched successfully",
+    data: posts,
+  });
+});
+const getAllVideoPost = catchAsync(async (req: Request, res: Response) => {
+  const posts = await PostServices.getAllVideoPost();
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -109,4 +168,7 @@ export const PostControllers = {
   getAllPostsByTopicId,
   getPostById,
   getPostByAuthorId,
+  createVideoPost,
+  getAllImagePost,
+  getAllVideoPost
 };

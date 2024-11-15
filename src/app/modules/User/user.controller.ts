@@ -100,6 +100,22 @@ const loginUser = catchAsync(async (req, res) => {
   });
 });
 
+const verityOtp = catchAsync(async (req, res) => {
+  const payload = req.body;
+  const { refreshToken, accessToken, loggedInUser } =
+    await UserService.verifyOtp(payload);
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  res.cookie("refreshToken", refreshToken, options).status(200).json({
+    success: true,
+    message: "user loged in successfully",
+    token: { accessToken },
+    data: loggedInUser,
+  });
+});
+
 const refreshAccessToken = catchAsync(async (req, res) => {
   const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
   const accessToken = await UserService.refreshAccessToken(refreshToken);
@@ -169,5 +185,6 @@ export const UserController = {
   toggleFollow,
   refreshAccessToken,
   recommendedUser,
-  getNotificationByUserId
+  getNotificationByUserId,
+  verityOtp
 };

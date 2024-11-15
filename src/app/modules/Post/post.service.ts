@@ -1,18 +1,40 @@
-import { Post } from "@prisma/client";
+import { NotificationType, Post, PostCategory } from "@prisma/client";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import IPost from "./post.interface";
 import { fileUploader } from "../../../utils/uploadFileOnDigitalOcean";
 import path from "path";
 import { Socket } from "socket.io";
+import { sendNotification } from "../../../helpars/socketIo";
 
-const createPost = async (payload: Partial<IPost>, postImage: string) => {
+const createPost = async (
+  payload: Partial<Post>,
+  postImage: string,
+  postVideo: string
+) => {
   // Check user validation
   const isAuthorExist = await prisma.user.findUnique({
     where: { id: payload.authorId },
   });
   if (!isAuthorExist) {
     throw new ApiError(404, "Author not found");
+  }
+
+  let videoUrl = "";
+  // Upload video to DigitalOcean Spaces and get the cloud URL
+  if (postVideo) {
+    try {
+      const uploadResponse = await fileUploader.uploadToDigitalOcean({
+        path: postVideo,
+        originalname: path.basename(postVideo),
+        mimetype: "video/mp4", // Adjust this based on the video type (e.g., detect dynamically)
+      } as Express.Multer.File);
+      videoUrl = uploadResponse.Location;
+      console.log(uploadResponse); // Cloud URL returned from DigitalOcean
+    } catch (error) {
+      console.error("Failed to upload video to DigitalOcean:", error);
+      throw new ApiError(500, "Failed to upload video to DigitalOcean");
+    }
   }
 
   let imageUrl = "";
@@ -37,7 +59,9 @@ const createPost = async (payload: Partial<IPost>, postImage: string) => {
       content: payload.content as string,
       authorId: payload.authorId as string,
       image: imageUrl || "",
-      topicId: payload.topicId || null, // If no topicId provided, it will be null
+      video: videoUrl || "",
+      topicId: payload.topicId || null,
+      category: payload.category || null,
     },
     include: {
       author: true,
@@ -50,9 +74,14 @@ const createPost = async (payload: Partial<IPost>, postImage: string) => {
   return newPost;
 };
 
-const getAllPost = async () => {
+const getAllPost = async (category: PostCategory | "") => {
+  // dynamic condition for category
+  const whereCondition = category ? { category } : {};
+
   // Fetch posts with the necessary fields and counts
+
   const posts = await prisma.post.findMany({
+    where: whereCondition,
     include: {
       author: true,
       topic: true,
@@ -68,6 +97,69 @@ const getAllPost = async () => {
     throw new ApiError(500, "Failed to fetch posts");
   }
 
+  // Calculate score for each post and sort by score in descending order
+  const sortedPosts = posts
+    .map((post) => ({
+      ...post,
+      commentCount: post.comments.length, // Count comments for each post
+      score: post.comments.length * 2 + post.likeCount, // Calculate the score
+    }))
+    .sort((a, b) => b.score - a.score); // Sort by score in descending order
+
+  return sortedPosts;
+};
+
+const getAllImagePost = async () => {
+  const posts = await prisma.post.findMany({
+    where: {
+      category: "IMAGE",
+      topic: null,
+    },
+    include: {
+      author: true,
+      topic: true,
+      comments: {
+        include: {
+          author: true,
+        },
+      },
+    },
+  });
+
+  if (!posts) {
+    throw new ApiError(500, "Failed to fetch posts");
+  }
+  // Calculate score for each post and sort by score in descending order
+  const sortedPosts = posts
+    .map((post) => ({
+      ...post,
+      commentCount: post.comments.length, // Count comments for each post
+      score: post.comments.length * 2 + post.likeCount, // Calculate the score
+    }))
+    .sort((a, b) => b.score - a.score); // Sort by score in descending order
+
+  return sortedPosts;
+};
+const getAllVideoPost = async () => {
+  const posts = await prisma.post.findMany({
+    where: {
+      category: "VIDEO",
+      topic: null,
+    },
+    include: {
+      author: true,
+      topic: true,
+      comments: {
+        include: {
+          author: true,
+        },
+      },
+    },
+  });
+
+  if (!posts) {
+    throw new ApiError(500, "Failed to fetch posts");
+  }
   // Calculate score for each post and sort by score in descending order
   const sortedPosts = posts
     .map((post) => ({
@@ -192,9 +284,22 @@ const addOrRemoveLike = async (payload: Partial<Post>) => {
     throw new ApiError(500, "Error while updating post");
   }
 
+  // Notify post author if liked
+  if (sendNotification) {
+    await sendNotification(
+      updatedPost.authorId,
+      isUserExist.id,
+      `${isUserExist.firstName + " " + isUserExist.lastName} has ${
+        isLiked ? "Dislike" : "Like"
+      } your post`,
+      NotificationType.LIKE
+    );
+  } else {
+    console.error("sendNotification is not available.");
+  }
+
   return updatedPost;
 };
-
 
 // const addOrRemoveLike = async (payload: Partial<Post>, socket: Socket) => {
 //   const post = await prisma.post.findUnique({
@@ -229,9 +334,6 @@ const addOrRemoveLike = async (payload: Partial<Post>) => {
 
 //   return updatedPost;
 // };
-
-
-
 
 const getAllPostsByTopicId = async (topicId: string) => {
   const posts = await prisma.post.findMany({
@@ -322,4 +424,6 @@ export const PostServices = {
   getAllPostsByTopicId,
   getSinglePost,
   getPostByAuthorId,
+  getAllImagePost,
+  getAllVideoPost,
 };
