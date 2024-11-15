@@ -9,6 +9,7 @@ const router = Router();
 router.post("/create-user", UserController.createUser);
 // login user
 router.post("/login", UserController.loginUser);
+router.post("/verify-otp", UserController.verityOtp);
 // refresh accessToken with refresh token
 router.get("/access-token", UserController.refreshAccessToken);
 // logout user

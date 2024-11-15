@@ -8,22 +8,24 @@ generator client {
 }
 
 model User {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  email        String    @unique
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
   password     String
   firstName    String
   lastName     String
   profileImage String?
   coverImage   String?
-  isDeleted    Boolean   @default(false)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  followers    String[]  @db.ObjectId
-  following    String[]  @db.ObjectId
-  // otp          String?
-  role         Role      @default(USER)
-  // otpExpiry    DateTime?
-  // identifier   String?
+  isDeleted    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  followers    String[] @db.ObjectId
+  following    String[] @db.ObjectId
+
+  role     Role    @default(USER)
+  verified Boolean @default(false)
+  otp      String?
+
+  otpExpiry    DateTime?
   refreshToken String?
   posts        Post[]    @relation("UserPosts")
   comments     Comment[] @relation("UserComments")
@@ -51,19 +53,20 @@ model Comment {
 }
 
 model Post {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
   content   String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  authorId  String    @db.ObjectId
-  author    User      @relation("UserPosts", fields: [authorId], references: [id])
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  authorId  String        @db.ObjectId
+  author    User          @relation("UserPosts", fields: [authorId], references: [id])
   image     String?
-  likeCount Int       @default(0)
-  likers    String[]  @db.ObjectId
-  comments  Comment[] @relation("PostComments")
-  topicId   String?   @db.ObjectId
-  topic     Topic?    @relation("TopicPosts", fields: [topicId], references: [id])
-
+  likeCount Int           @default(0)
+  likers    String[]      @db.ObjectId
+  comments  Comment[]     @relation("PostComments")
+  topicId   String?       @db.ObjectId
+  topic     Topic?        @relation("TopicPosts", fields: [topicId], references: [id])
+  video     String?
+  category  PostCategory?
   @@map("posts")
 }
 
@@ -96,13 +99,13 @@ model Topic {
 }
 
 model Notification {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId // The user to whom the notification is sent
-  senderId    String   @db.ObjectId // The user who triggered the notification
-  message     String
-  type        NotificationType
-  createdAt   DateTime @default(now())
-  isRead      Boolean  @default(false)
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String           @db.ObjectId // The user to whom the notification is sent
+  senderId  String           @db.ObjectId // The user who triggered the notification
+  message   String
+  type      NotificationType
+  createdAt DateTime         @default(now())
+  isRead    Boolean          @default(false)
 
   @@map("notifications")
 }
@@ -113,8 +116,12 @@ enum NotificationType {
   COMMENT
 }
 
-
 enum Role {
   ADMIN
   USER
+}
+
+enum PostCategory {
+  IMAGE
+  VIDEO
 }

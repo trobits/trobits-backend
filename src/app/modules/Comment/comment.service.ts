@@ -1,9 +1,8 @@
-import { Comment } from "@prisma/client";
+import { Comment, NotificationType } from "@prisma/client";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { Socket } from "socket.io";
-
-
+import { sendNotification } from "../../../helpars/socketIo";
 
 // create comment
 const createComment = async (payload: Partial<Comment>) => {
@@ -40,6 +39,19 @@ const createComment = async (payload: Partial<Comment>) => {
 
   if (!newComment) {
     throw new ApiError(500, "Error creating comment");
+  }
+
+  if (sendNotification) {
+    await sendNotification(
+      isPostExist.authorId,
+      isUserExist.id,
+      `${
+        isUserExist.firstName + " " + isUserExist.lastName
+      } has Commented on your post.`,
+      NotificationType.COMMENT
+    );
+  } else {
+    console.error("sendNotification is not available.");
   }
 
   return newComment;
@@ -95,7 +107,6 @@ const createComment = async (payload: Partial<Comment>) => {
 
 //   return newComment;
 // };
-
 
 // update comment
 const updateComment = async (payload: Partial<Comment>) => {
