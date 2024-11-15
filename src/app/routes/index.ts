@@ -3,7 +3,7 @@ import { userRoutes } from "../modules/User/user.routes";
 import { topicRoutes } from "../modules/Topic/topic.routes";
 import { commentRoutes } from "../modules/Comment/comment.routes";
 import { postRoutes } from "../modules/Post/post.routes";
-// import { articleRoutes } from "../../../Article/article.routes";
+import { articleRoutes } from "../modules/Article/article.routes";
 
 const router = express.Router();
 
@@ -20,10 +20,10 @@ const moduleRoutes = [
     path: "/post",
     route: postRoutes,
   },
-  // {
-  //   path: "/article",
-  //   route: articleRoutes,
-  // },
+  {
+    path: "/article",
+    route: articleRoutes,
+  },
   {
     path: "/comment",
     route: commentRoutes,
