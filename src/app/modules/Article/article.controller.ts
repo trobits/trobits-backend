@@ -1,86 +1,86 @@
-// import { Request, Response } from "express";
-// import catchAsync from "../../../shared/catchAsync";
-// import sendResponse from "../../../shared/sendResponse";
-// import { ArticleServices } from "./artickle.service";
-// import {
-//   addOrRemoveLikeSchema,
-//   CreateArticleSchema,
-// } from "./article.validation";
+import { Request, Response } from "express";
+import catchAsync from "../../../shared/catchAsync";
+import sendResponse from "../../../shared/sendResponse";
+import { ArticleServices } from "./artickle.service";
+import {
+  addOrRemoveLikeSchema,
+  CreateArticleSchema,
+} from "./article.validation";
 
-// const createArticle = catchAsync(async (req: Request, res: Response) => {
-//   const payload = CreateArticleSchema.parse(req.body);
-//   const newArticle = await ArticleServices.createArticle(payload);
-//   sendResponse(res, {
-//     statusCode: 201,
-//     success: true,
-//     message: "article created successfully",
-//     data: newArticle,
-//   });
-// });
+const createArticle = catchAsync(async (req: Request, res: Response) => {
+  const payload = CreateArticleSchema.parse(req.body);
+  const newArticle = await ArticleServices.createArticle(payload);
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "article created successfully",
+    data: newArticle,
+  });
+});
 
-// const getAllArticle = catchAsync(async (req: Request, res: Response) => {
-//   const articles = await ArticleServices.getAllArticle();
-//   sendResponse(res, {
-//     statusCode: 200,
-//     success: true,
-//     message: "article fetched successfully",
-//     data: articles,
-//   });
-// });
+const getAllArticle = catchAsync(async (req: Request, res: Response) => {
+  const articles = await ArticleServices.getAllArticle();
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "article fetched successfully",
+    data: articles,
+  });
+});
 
-// // const updatePost = catchAsync(async (req: Request, res: Response) => {
-// //   const payload = UpdatePostSchema.parse(req.body);
-// //   const postImage = req.file?.path || "";
-// //   const updatePost = await PostServices.updatePost(payload, postImage);
-// //   sendResponse(res, {
-// //     statusCode: 200,
-// //     success: true,
-// //     message: "Post updated successfully",
-// //     data: updatePost,
-// //   });
-// // });
-
-// // const deletePost = catchAsync(async (req, res) => {
-// //   const postId = req.params.postId;
-// //   const deletedPost = await PostServices.deletePost(postId);
-// //   sendResponse(res, {
-// //     statusCode: 200,
-// //     success: true,
-// //     message: "Post deleted successfully",
-// //     data: {},
-// //   });
-// // });
-
-// const addOrRemoveLike = catchAsync(async (req, res) => {
-//   const payload = addOrRemoveLikeSchema.parse(req.body);
-//   const addOrRemoveLike = await ArticleServices.addOrRemoveLike(payload);
+// const updatePost = catchAsync(async (req: Request, res: Response) => {
+//   const payload = UpdatePostSchema.parse(req.body);
+//   const postImage = req.file?.path || "";
+//   const updatePost = await PostServices.updatePost(payload, postImage);
 //   sendResponse(res, {
 //     statusCode: 200,
 //     success: true,
-//     message: "Post updated successfully.",
-//     data: addOrRemoveLike,
+//     message: "Post updated successfully",
+//     data: updatePost,
 //   });
 // });
 
-
-// // get single post by postId
-
-// const getSingleArticle = catchAsync(async (req, res) => {
-//   const articleId = req.params.articleId;
-//   const article = await ArticleServices.getSingleArticle(articleId);
+// const deletePost = catchAsync(async (req, res) => {
+//   const postId = req.params.postId;
+//   const deletedPost = await PostServices.deletePost(postId);
 //   sendResponse(res, {
 //     statusCode: 200,
 //     success: true,
-//     message: "article fetched successfully",
-//     data: article,
+//     message: "Post deleted successfully",
+//     data: {},
 //   });
 // });
 
-// export const articleControllers = {
-//   createArticle,
-//   getAllArticle,
-//   // updatePost,
-//   // deletePost,
-//   addOrRemoveLike,
-//   getSingleArticle,
-// };
+const addOrRemoveLike = catchAsync(async (req, res) => {
+  const payload = addOrRemoveLikeSchema.parse(req.body);
+  const addOrRemoveLike = await ArticleServices.addOrRemoveLike(payload);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Post updated successfully.",
+    data: addOrRemoveLike,
+  });
+});
+
+
+// get single post by postId
+
+const getSingleArticle = catchAsync(async (req, res) => {
+  const articleId = req.params.articleId;
+  const article = await ArticleServices.getSingleArticle(articleId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "article fetched successfully",
+    data: article,
+  });
+});
+
+export const articleControllers = {
+  createArticle,
+  getAllArticle,
+  // updatePost,
+  // deletePost,
+  addOrRemoveLike,
+  getSingleArticle,
+};
