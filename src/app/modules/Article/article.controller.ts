@@ -5,11 +5,14 @@ import { ArticleServices } from "./artickle.service";
 import {
   addOrRemoveLikeSchema,
   CreateArticleSchema,
+  UpdateArticleSchema,
 } from "./article.validation";
 
 const createArticle = catchAsync(async (req: Request, res: Response) => {
   const payload = CreateArticleSchema.parse(req.body);
-  const newArticle = await ArticleServices.createArticle(payload);
+  const imageUrl = req.file?.path || "";
+
+  const newArticle = await ArticleServices.createArticle(imageUrl, payload);
   sendResponse(res, {
     statusCode: 201,
     success: true,
@@ -28,28 +31,29 @@ const getAllArticle = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// const updatePost = catchAsync(async (req: Request, res: Response) => {
-//   const payload = UpdatePostSchema.parse(req.body);
-//   const postImage = req.file?.path || "";
-//   const updatePost = await PostServices.updatePost(payload, postImage);
-//   sendResponse(res, {
-//     statusCode: 200,
-//     success: true,
-//     message: "Post updated successfully",
-//     data: updatePost,
-//   });
-// });
+const updateArticle = catchAsync(async (req: Request, res: Response) => {
+  const payload = UpdateArticleSchema.parse(req.body);
+  const postImage = req.file?.path || "";
+  const updatePost = await ArticleServices.updateArticle(payload, postImage);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Post updated successfully",
+    data: updatePost,
+  });
+});
 
-// const deletePost = catchAsync(async (req, res) => {
-//   const postId = req.params.postId;
-//   const deletedPost = await PostServices.deletePost(postId);
-//   sendResponse(res, {
-//     statusCode: 200,
-//     success: true,
-//     message: "Post deleted successfully",
-//     data: {},
-//   });
-// });
+const deleteArticle = catchAsync(async (req, res) => {
+  const articleId = req.params.articleId;
+  const deletedArticle = await ArticleServices.deleteArticle(articleId);
+  console.log({deleteArticle})
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "article deleted successfully",
+    data: {},
+  });
+});
 
 const addOrRemoveLike = catchAsync(async (req, res) => {
   const payload = addOrRemoveLikeSchema.parse(req.body);
@@ -61,7 +65,6 @@ const addOrRemoveLike = catchAsync(async (req, res) => {
     data: addOrRemoveLike,
   });
 });
-
 
 // get single post by postId
 
@@ -83,4 +86,6 @@ export const articleControllers = {
   // deletePost,
   addOrRemoveLike,
   getSingleArticle,
+  updateArticle,
+  deleteArticle
 };

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { articleControllers } from "./article.controller";
 import { fileUploader } from "../../../helpars/fileUploader";
-import { verifyUser } from "../../middlewares/auth";
+// import { verifyUser } from "../../middlewares/auth";
 
 const router = Router();
 
@@ -17,16 +17,15 @@ router.get("/all-article", articleControllers.getAllArticle);
 
 // all posts by topic id
 
-// update post
-// router.patch(
-//   "/update-article",
-//   verifyUser,
-//   fileUploader.upload.single("image"),
-//   PostControllers.updatePost
-// );
+// update article
+router.patch(
+  "/update-article",
+  fileUploader.upload.single("image"),
+  articleControllers.updateArticle
+);
 
 // delete post
-// router.delete("/delete-post/:postId", articleControllers.deletePost);
+router.delete("/delete-article/:articleId", articleControllers.deleteArticle);
 
 // add or remove like
 router.patch("/add-remove-like", articleControllers.addOrRemoveLike);
