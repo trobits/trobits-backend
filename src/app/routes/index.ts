@@ -4,6 +4,8 @@ import { topicRoutes } from "../modules/Topic/topic.routes";
 import { commentRoutes } from "../modules/Comment/comment.routes";
 import { postRoutes } from "../modules/Post/post.routes";
 import { articleRoutes } from "../modules/Article/article.routes";
+import { shibRoutes } from "../modules/Shiba/shiba.routes";
+import { luncRoutes } from "../modules/Lunc/lunc.routes";
 
 const router = express.Router();
 
@@ -27,6 +29,14 @@ const moduleRoutes = [
   {
     path: "/comment",
     route: commentRoutes,
+  },
+  {
+    path: "/shiba",
+    route: shibRoutes,
+  },
+  {
+    path: "/lunc",
+    route: luncRoutes,
   },
 ];
 

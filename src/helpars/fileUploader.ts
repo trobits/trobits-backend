@@ -11,7 +11,13 @@ const storage = multer.diskStorage({
   },
 });
 
-export const upload = multer({ storage: storage });
+export const upload = multer({
+  storage: storage,
+  limits: {
+    // 100 MB in bytes
+    fileSize: 100 * 1024 * 1024,
+  },
+});
 
 // upload single image
 const uploadSingle = upload.single("carImage");
@@ -20,18 +26,13 @@ const uploadSingle = upload.single("carImage");
 const uploadMultiple = upload.fields([
   { name: "singleImage", maxCount: 10 },
   { name: "galleryImage", maxCount: 10 },
- 
- 
 ]);
-
-
 
 export const fileUploader = {
   upload,
   uploadSingle,
   uploadMultiple,
 };
-
 
 // import multer from "multer";
 // import path from "path";
