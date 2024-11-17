@@ -20,6 +20,7 @@ model User {
   updatedAt    DateTime @updatedAt
   followers    String[] @db.ObjectId
   following    String[] @db.ObjectId
+  recommended  Boolean @default(false)
 
   role     Role    @default(USER)
   verified Boolean @default(false)

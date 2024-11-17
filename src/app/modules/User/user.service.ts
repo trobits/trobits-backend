@@ -1,4 +1,4 @@
-import { NotificationType, Role } from "@prisma/client";
+import { NotificationType, Role, User } from "@prisma/client";
 import config from "../../../config";
 import ApiError from "../../../errors/ApiErrors";
 import { jwtHelpers } from "../../../helpars/jwtHelpers";
@@ -65,6 +65,16 @@ const loginUser = async (payload: Partial<IUser>) => {
   if (!user) {
     throw new ApiError(404, "User not found with this email");
   }
+  const isBlocked = await prisma.user.findUnique({
+    where: {
+      email: payload.email,
+      isDeleted: true,
+    },
+  });
+  if (isBlocked) {
+    throw new ApiError(403, "User is blocked!");
+  }
+
   if (!payload.password) {
     throw new ApiError(400, "Password is required");
   }
@@ -398,6 +408,166 @@ const getAllUsers = async () => {
   return users;
 };
 
+// all Recommended users
+const getAllRecommendedUsers = async () => {
+  const users = await prisma.user.findMany({
+    where: {
+      recommended: true,
+      isDeleted: false,
+      // verified: true,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      profileImage: true,
+      isDeleted: true,
+      posts: {
+        include: {
+          comments: true,
+        },
+      },
+      coverImage: true,
+      role: true,
+      followers: true,
+      following: true,
+      comments: true,
+    },
+  });
+  return users;
+};
+
+const getAllVerifiedUsers = async () => {
+  const users = await prisma.user.findMany({
+    where: {
+      recommended: false,
+      verified: true,
+      isDeleted: false,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      profileImage: true,
+      isDeleted: true,
+      posts: {
+        include: {
+          comments: true,
+        },
+      },
+      coverImage: true,
+      role: true,
+      followers: true,
+      following: true,
+      comments: true,
+    },
+  });
+  console.log({ users });
+  return users;
+};
+
+const getAllBlockedUsers = async () => {
+  const users = await prisma.user.findMany({
+    where: {
+      isDeleted: true,
+      // verified: true,
+      // recommended: true,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      profileImage: true,
+      isDeleted: true,
+      posts: {
+        include: {
+          comments: true,
+        },
+      },
+      coverImage: true,
+      role: true,
+      followers: true,
+      following: true,
+      comments: true,
+    },
+  });
+  return users;
+};
+
+const toggleVerifyAndRecommendedUser = async (payload: Partial<User>) => {
+  console.log(payload.id);
+  const user = await prisma.user.findUnique({
+    where: { id: payload.id },
+  });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const isRecommendedUser = user.recommended;
+  const updatedUsr = await prisma.user.update({
+    where: { id: payload.id },
+    data: {
+      recommended: !isRecommendedUser,
+    },
+  });
+};
+
+const toggleDeleteUser = async (payload: Partial<User>) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: payload.id,
+    },
+  });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const isDeleted = user.isDeleted;
+  const updatedUser = await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      isDeleted: !isDeleted,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      profileImage: true,
+      isDeleted: true,
+
+      coverImage: true,
+      role: true,
+    },
+  });
+  return updatedUser;
+};
+
+const deleteUser = async (email: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  //   check if user has been deleted already
+  if (user.isDeleted) {
+    throw new ApiError(400, "User has already been deleted");
+  }
+  const deletedUser = await prisma.user.update({
+    where: {
+      email: email,
+    },
+    data: {
+      isDeleted: true,
+    },
+  });
+  return deletedUser;
+};
+
 // update user
 const updateUser = async (
   email: string,
@@ -465,26 +635,6 @@ const updateUser = async (
 };
 
 // delete user
-const deleteUser = async (email: string) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      email: email,
-    },
-  });
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-  //   check if user has been deleted already
-  if (user.isDeleted) {
-    throw new ApiError(400, "User has already been deleted"); // return error if user has been deleted already
-  }
-  const deletedUser = await prisma.user.delete({
-    where: {
-      email: email,
-    },
-  });
-  return deletedUser;
-};
 
 const toggleFollow = async (payload: {
   followerId: string;
@@ -500,7 +650,7 @@ const toggleFollow = async (payload: {
   if (followerId === followedId) {
     throw new ApiError(400, "You cannot follow yourself.");
   }
-
+  
   // Check if the follower exists
   const follower = await prisma.user.findUnique({
     where: { id: followerId },
@@ -508,16 +658,19 @@ const toggleFollow = async (payload: {
   if (!follower) {
     throw new Error("Follower does not exist");
   }
-
+  
   // Check if the followed user exists
   const followed = await prisma.user.findUnique({
     where: { id: followedId },
   });
+
+  
   if (!followed) {
     throw new Error("User to be followed or unfollowed does not exist");
   }
-
+  
   const isFollowing = follower.following.includes(followedId);
+  console.log({isFollowing})
 
   if (isFollowing) {
     // If currently following, unfollow the user
@@ -582,7 +735,7 @@ const toggleFollow = async (payload: {
   }
 };
 
-// toggle follow
+
 
 // const toggleFollow = async (
 //   payload: { followerId: string; followedId: string },
@@ -686,4 +839,9 @@ export const UserService = {
   recommendedUser,
   getNotificationByUserId,
   verifyOtp,
+  toggleVerifyAndRecommendedUser,
+  toggleDeleteUser,
+  getAllBlockedUsers,
+  getAllRecommendedUsers,
+  getAllVerifiedUsers,
 };

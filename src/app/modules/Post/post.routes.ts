@@ -40,7 +40,7 @@
 import { Router } from "express";
 import { PostControllers } from "./post.controller";
 import { fileUploader } from "../../../helpars/fileUploader";
-import { verifyUser } from "../../middlewares/auth";
+// import { verifyUser } from "../../middlewares/auth";
 
 const router = Router();
 
@@ -60,6 +60,7 @@ const router = Router();
 
 router.post(
   "/create-post",
+  // verifyUser,
   fileUploader.upload.fields([
     { name: "image", maxCount: 1 }, // Field for image uploads
     { name: "video", maxCount: 1 }, // Field for video uploads
@@ -78,7 +79,7 @@ router.get("/all-posts/:topicId", PostControllers.getAllPostsByTopicId);
 // update post
 router.patch(
   "/update-post",
-  verifyUser,
+  // verifyUser,
   fileUploader.upload.single("image"),
   PostControllers.updatePost
 );
