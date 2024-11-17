@@ -152,15 +152,15 @@ const toggleFollow = catchAsync(async (req, res) => {
   });
 });
 
-const recommendedUser = catchAsync(async (req, res) => {
-  const result = await UserService.getAllUsers();
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "All users fetched successfully!",
-    data: result,
-  });
-});
+// const recommendedUser = catchAsync(async (req, res) => {
+//   const result = await UserService.getAllUsers();
+//   sendResponse(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: "All users fetched successfully!",
+//     data: result,
+//   });
+// });
 
 const getNotificationByUserId = catchAsync(async (req, res) => {
   const userId = req.params.userId;
@@ -170,6 +170,60 @@ const getNotificationByUserId = catchAsync(async (req, res) => {
     success: true,
     message: "All notifications fetched successfully!",
     data: notifications,
+  });
+});
+
+const toggleVerifyAndRecommendedUser = catchAsync(async (req, res) => {
+  const payload = req.body;
+  const toggleUserStatus = await UserService.toggleVerifyAndRecommendedUser(
+    payload
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Update user Status.",
+    data: toggleUserStatus,
+  });
+});
+
+const toggleDeleteUser = catchAsync(async (req, res) => {
+  const payload = req.body;
+  const toggleUserStatus = await UserService.toggleDeleteUser(payload);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Update user Status.",
+    data: toggleUserStatus,
+  });
+});
+
+const getAllVerifiedUsers = catchAsync(async (req, res) => {
+  const result = await UserService.getAllVerifiedUsers();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "All Verified users fetched successfully!",
+    data: result,
+  });
+});
+
+const getAllBlockedUsers = catchAsync(async (req, res) => {
+  const result = await UserService.getAllBlockedUsers();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "All Blocked users fetched successfully!",
+    data: result,
+  });
+});
+
+const getAllRecommendedUsers = catchAsync(async (req, res) => {
+  const result = await UserService.getAllRecommendedUsers();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "All Recommended users fetched successfully!",
+    data: result,
   });
 });
 
@@ -184,7 +238,12 @@ export const UserController = {
   deleteUser,
   toggleFollow,
   refreshAccessToken,
-  recommendedUser,
+  // recommendedUser,
   getNotificationByUserId,
-  verityOtp
+  verityOtp,
+  toggleVerifyAndRecommendedUser,
+  toggleDeleteUser,
+  getAllBlockedUsers,
+  getAllRecommendedUsers,
+  getAllVerifiedUsers,
 };

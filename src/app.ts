@@ -12,6 +12,7 @@ const app: Application = express();
 export const corsOptions = {
   origin: [
     "https://sisiku-frontend.vercel.app",
+    "https://sisiku-dashboard-client.vercel.app",
     "http://localhost:3000",
     "http://localhost:3001",
     "*"

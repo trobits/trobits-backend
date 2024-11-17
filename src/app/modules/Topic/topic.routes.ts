@@ -31,17 +31,17 @@
 
 // export const topicRoutes = router;
 
-
-
 import { Router } from "express";
 import { fileUploader } from "../../../helpars/fileUploader";
 import { TopicControllers } from "./topic.controller";
+import { verifyUser } from "../../middlewares/auth";
 
 const router = Router();
 
 // create topic
 router.post(
   "/create-topic",
+  verifyUser,
   fileUploader.upload.single("image"),
   TopicControllers.createTopic
 );
@@ -57,6 +57,7 @@ router.get("/author-topics/:authorId", TopicControllers.getTopicsByAuthor);
 // update topic
 router.patch(
   "/update-topic",
+  verifyUser,
   fileUploader.upload.single("image"),
   TopicControllers.updateTopic
 );

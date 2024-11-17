@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { UserController } from "./user.controller";
 import { fileUploader } from "../../../helpars/fileUploader";
-import { verifyUser } from "../../middlewares/auth";
+// import { verifyUser } from "../../middlewares/auth";
 
 const router = Router();
 
@@ -13,14 +13,18 @@ router.post("/verify-otp", UserController.verityOtp);
 // refresh accessToken with refresh token
 router.get("/access-token", UserController.refreshAccessToken);
 // logout user
-router.get("/logout", verifyUser, UserController.logoutUser);
+router.get(
+  "/logout",
+  //  verifyUser,
+  UserController.logoutUser
+);
 // get single user by email
 router.post("/get-user", UserController.getUserByEmail);
 // get single user by id
 router.get("/singleUser/:userId", UserController.getUserById);
 // get all users
 router.get("/all-users", UserController.getAllUsers);
-router.get("/recommended-users", UserController.recommendedUser);
+// router.get("/recommended-users", UserController.recommendedUser);
 // update user
 router.patch(
   "/update-user/:email",
@@ -37,5 +41,16 @@ router.patch("/delete-user/:email", UserController.deleteUser);
 router.patch("/follow-user", UserController.toggleFollow);
 // get all notifications by userId
 router.get("/notifications/:userId", UserController.getNotificationByUserId);
+// toggle recommend user
+router.patch(
+  "/toggle-recommend",
+  UserController.toggleVerifyAndRecommendedUser
+);
+// toggle block user
+router.patch("/toggle-blocked", UserController.toggleDeleteUser);
+// get all verified user
+router.get("/verified-users", UserController.getAllVerifiedUsers);
+router.get("/recommended-users", UserController.getAllRecommendedUsers);
+router.get("/blocked-users", UserController.getAllBlockedUsers);
 
 export const userRoutes = router;

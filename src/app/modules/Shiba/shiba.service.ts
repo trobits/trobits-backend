@@ -39,7 +39,6 @@ const updateShib = async (payload: Partial<Shiba>) => {
       burns: payload.burns ?? existingShib.burns,
     },
   });
-  console.log({ updateShib });
 
   if (!updatedShib) {
     throw new ApiError(500, "Failed to update Shiba record");

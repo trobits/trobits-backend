@@ -36,8 +36,6 @@
 //         throw new ApiError(httpStatus.NOT_FOUND, "This user is not found !");
 //       }
 
-
-
 //       // const userStatus = user?.userStatus;
 
 //       // if (userStatus === "BLOCKED") {
@@ -58,14 +56,6 @@
 // };
 
 // export default auth;
-
-
-
-
-
-
-
-
 
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import catchAsync from "../../shared/catchAsync";
@@ -96,6 +86,15 @@ export const verifyUser = catchAsync(async (req, res, next) => {
 
     if (!user) {
       throw new ApiError(401, "Invalid Access Token");
+    }
+    const isBlocked = await prisma.user.findUnique({
+      where: {
+        id: user.id,
+        isDeleted: true,
+      },
+    });
+    if (isBlocked) {
+      throw new ApiError(403, "User is blocked!");
     }
 
     req.user = user;
