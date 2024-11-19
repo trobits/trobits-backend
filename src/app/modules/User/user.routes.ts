@@ -52,5 +52,7 @@ router.patch("/toggle-blocked", UserController.toggleDeleteUser);
 router.get("/verified-users", UserController.getAllVerifiedUsers);
 router.get("/recommended-users", UserController.getAllRecommendedUsers);
 router.get("/blocked-users", UserController.getAllBlockedUsers);
+router.post("/forgot-password", UserController.forgotPassword);
+router.patch("/new-password", UserController.setNewPassword);
 
 export const userRoutes = router;
