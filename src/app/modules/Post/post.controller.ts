@@ -59,7 +59,6 @@ const createPost = catchAsync(async (req: Request, res: Response) => {
 const createVideoPost = catchAsync(async (req: Request, res: Response) => {});
 
 const getAllPost = catchAsync(async (req: Request, res: Response) => {
-  console.log("route hit");
   const category = req.params.category || "";
   const posts = await PostServices.getAllPost(category as PostCategory);
   sendResponse(res, {

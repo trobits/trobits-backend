@@ -74,11 +74,44 @@ const createPost = async (
   return newPost;
 };
 
-const getAllPost = async (category: PostCategory | "") => {
-  // dynamic condition for category
-  const whereCondition = category ? { category } : {};
+// const getAllPost = async (category: PostCategory | "") => {
+//   // dynamic condition for category
+//   const whereCondition = category ? { category } : {};
 
-  // Fetch posts with the necessary fields and counts
+//   // Fetch posts with the necessary fields and counts
+
+//   const posts = await prisma.post.findMany({
+//     where: whereCondition,
+//     include: {
+//       author: true,
+//       topic: true,
+//       comments: {
+//         include: {
+//           author: true,
+//         },
+//       },
+//     },
+//   });
+
+//   if (!posts) {
+//     throw new ApiError(500, "Failed to fetch posts");
+//   }
+
+//   // Calculate score for each post and sort by score in descending order
+//   const sortedPosts = posts
+//     .map((post) => ({
+//       ...post,
+//       commentCount: post.comments.length, // Count comments for each post
+//       score: post.comments.length * 2 + post.likeCount, // Calculate the score
+//     }))
+//     .sort((a, b) => b.score - a.score); // Sort by score in descending order
+
+//   return sortedPosts;
+// };
+
+
+const getAllPost = async (category: PostCategory | "") => {
+  const whereCondition = category ? { category } : {};
 
   const posts = await prisma.post.findMany({
     where: whereCondition,
@@ -97,17 +130,24 @@ const getAllPost = async (category: PostCategory | "") => {
     throw new ApiError(500, "Failed to fetch posts");
   }
 
-  // Calculate score for each post and sort by score in descending order
   const sortedPosts = posts
-    .map((post) => ({
-      ...post,
-      commentCount: post.comments.length, // Count comments for each post
-      score: post.comments.length * 2 + post.likeCount, // Calculate the score
-    }))
-    .sort((a, b) => b.score - a.score); // Sort by score in descending order
+    .map((post) => {
+      const commentCount = post.comments.length;
+      const likeCount = post.likeCount;
+      const postAgeInHours =
+        (new Date().getTime() - new Date(post.createdAt).getTime()) / 3600000;
+
+      // Adjust score with time-decay factor
+      const score =
+        (commentCount * 2 + likeCount) / Math.pow(1 + postAgeInHours, 0.5); // Time-decay factor
+
+      return { ...post, commentCount, score };
+    })
+    .sort((a, b) => b.score - a.score);
 
   return sortedPosts;
 };
+
 
 const getAllImagePost = async () => {
   const posts = await prisma.post.findMany({
@@ -300,40 +340,6 @@ const addOrRemoveLike = async (payload: Partial<Post>) => {
 
   return updatedPost;
 };
-
-// const addOrRemoveLike = async (payload: Partial<Post>, socket: Socket) => {
-//   const post = await prisma.post.findUnique({
-//     where: { id: payload.id },
-//   });
-//   if (!post) {
-//     throw new ApiError(404, "Post not found");
-//   }
-
-//   const userId = payload.authorId as string;
-//   const isLiked = post.likers.includes(userId);
-
-//   const updatedPost = await prisma.post.update({
-//     where: { id: payload.id },
-//     data: {
-//       likers: isLiked
-//         ? { set: post.likers.filter((likerId) => likerId !== userId) }
-//         : { push: userId },
-//       likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1,
-//     },
-//   });
-
-//   // Notify post author if liked
-//   if (!isLiked) {
-//     socket.data.sendNotification(
-//       post.authorId,
-//       userId,
-//       "Someone liked your post.",
-//       "LIKE"
-//     );
-//   }
-
-//   return updatedPost;
-// };
 
 const getAllPostsByTopicId = async (topicId: string) => {
   const posts = await prisma.post.findMany({

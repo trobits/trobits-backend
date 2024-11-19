@@ -20,7 +20,7 @@ model User {
   updatedAt    DateTime @updatedAt
   followers    String[] @db.ObjectId
   following    String[] @db.ObjectId
-  recommended  Boolean @default(false)
+  recommended  Boolean  @default(false)
 
   role     Role    @default(USER)
   verified Boolean @default(false)
@@ -134,21 +134,33 @@ model Notification {
 }
 
 model Shiba {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  visits    String
-  revenue   String
-  burns     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  visits       String
+  revenue      String
+  burns        String
+  visits7Day   String
+  revenue7Day  String
+  burns7Day    String
+  visits30Day  String
+  revenue30Day String
+  burns30Day   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Lunc {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  visits    String
-  revenue   String
-  burns     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  visits       String
+  revenue      String
+  burns        String
+  visits7Day   String
+  revenue7Day  String
+  burns7Day    String
+  visits30Day  String
+  revenue30Day String
+  burns30Day   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 enum NotificationType {
