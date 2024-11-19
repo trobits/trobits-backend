@@ -6,6 +6,7 @@ import { postRoutes } from "../modules/Post/post.routes";
 import { articleRoutes } from "../modules/Article/article.routes";
 import { shibRoutes } from "../modules/Shiba/shiba.routes";
 import { luncRoutes } from "../modules/Lunc/lunc.routes";
+import { contactUsRoutes } from "../modules/ContactUs/contactUs.routes";
 
 const router = express.Router();
 
@@ -37,6 +38,10 @@ const moduleRoutes = [
   {
     path: "/lunc",
     route: luncRoutes,
+  },
+  {
+    path: "/contactus",
+    route: contactUsRoutes,
   },
 ];
 

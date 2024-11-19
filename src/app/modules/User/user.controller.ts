@@ -227,6 +227,33 @@ const getAllRecommendedUsers = catchAsync(async (req, res) => {
   });
 });
 
+const forgotPassword = catchAsync(async (req, res) => {
+  const email = req.body.email;
+  const sendOtp = await UserService.forgotPassword(email);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Otp sent successfully",
+    data: sendOtp,
+  });
+});
+
+
+const setNewPassword = catchAsync(async (req, res) => {
+  const payload = req.body;
+  const sendOtp = await UserService.setNewPassword(payload);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Otp sent successfully",
+    data: sendOtp,
+  });
+});
+
+
+
 export const UserController = {
   createUser,
   loginUser,
@@ -246,4 +273,6 @@ export const UserController = {
   getAllBlockedUsers,
   getAllRecommendedUsers,
   getAllVerifiedUsers,
+  forgotPassword,
+  setNewPassword,
 };
