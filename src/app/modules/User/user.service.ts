@@ -373,6 +373,7 @@ const getUserById = async (id: string) => {
       comments: true,
       createdAt: true,
       updatedAt: true,
+      recommended: true,
     },
   });
   if (!user) {
@@ -650,7 +651,7 @@ const toggleFollow = async (payload: {
   if (followerId === followedId) {
     throw new ApiError(400, "You cannot follow yourself.");
   }
-  
+
   // Check if the follower exists
   const follower = await prisma.user.findUnique({
     where: { id: followerId },
@@ -658,19 +659,18 @@ const toggleFollow = async (payload: {
   if (!follower) {
     throw new Error("Follower does not exist");
   }
-  
+
   // Check if the followed user exists
   const followed = await prisma.user.findUnique({
     where: { id: followedId },
   });
 
-  
   if (!followed) {
     throw new Error("User to be followed or unfollowed does not exist");
   }
-  
+
   const isFollowing = follower.following.includes(followedId);
-  console.log({isFollowing})
+  console.log({ isFollowing });
 
   if (isFollowing) {
     // If currently following, unfollow the user
@@ -734,8 +734,6 @@ const toggleFollow = async (payload: {
     return { message: "Successfully followed the user." };
   }
 };
-
-
 
 // const toggleFollow = async (
 //   payload: { followerId: string; followedId: string },

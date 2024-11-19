@@ -3,7 +3,8 @@ import { z } from "zod";
 const createCommentSchema = z.object({
   content: z.string(),
   authorId: z.string(),
-  postId: z.string(),
+  postId: z.string().optional(),
+  articleId: z.string().optional(),
 });
 
 const updateCommentSchema = z
