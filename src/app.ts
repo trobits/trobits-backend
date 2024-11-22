@@ -11,11 +11,13 @@ const app: Application = express();
 
 export const corsOptions = {
   origin: [
+    "https://admin.trobits.com",
+    "https://trobits.com",
     "https://sisiku-frontend.vercel.app",
     "https://sisiku-dashboard-client.vercel.app",
     "http://localhost:3000",
     "http://localhost:3001",
-    "*"
+    "*",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
