@@ -4,10 +4,91 @@ import prisma from "../../../shared/prisma";
 import { Socket } from "socket.io";
 import { sendNotification } from "../../../helpars/socketIo";
 
+// const createComment = async (payload: Partial<Comment>) => {
+//   // Check for user validation
+//   const isUserExist = await prisma.user.findUnique({
+//     where: { id: payload.authorId },
+//   });
+//   if (!isUserExist) {
+//     throw new ApiError(400, "User does not exist with this ID");
+//   }
+//   // Ensure either postId or articleId is provided, but not both
+//   if (
+//     (!payload.postId && !payload.articleId) ||
+//     (payload.postId && payload.articleId)
+//   ) {
+//     throw new ApiError(
+//       400,
+//       "Provide either postId or articleId, but not both."
+//     );
+//   }
 
+//   // Validate the referenced parent (Post or Article)
+//   if (payload.postId) {
+//     const isPostExist = await prisma.post.findUnique({
+//       where: { id: payload.postId },
+//     });
+//     if (!isPostExist) {
+//       throw new ApiError(400, "Post does not exist");
+//     }
+//   } else if (payload.articleId) {
+//     const isArticleExist = await prisma.article.findUnique({
+//       where: { id: payload.articleId },
+//     });
+//     if (!isArticleExist) {
+//       throw new ApiError(400, "Article does not exist");
+//     }
+//   }
+
+//   // Create the comment
+//   const newComment = await prisma.comment.create({
+//     data: {
+//       content: payload.content as string,
+//       authorId: payload.authorId as string,
+//       postId: payload.postId || null,
+//       articleId: payload.articleId || null,
+//     },
+//     include: {
+//       author: true,
+//     },
+//   });
+
+//   if (!newComment) {
+//     throw new ApiError(500, "Error creating comment");
+//   }
+
+//   // Send notification
+//   if (payload.postId) {
+//     const post = await prisma.post.findUnique({
+//       where: { id: payload.postId },
+//     });
+//     if (post && sendNotification) {
+//       await sendNotification(
+//         post.authorId,
+//         isUserExist.id,
+//         `${isUserExist.firstName} ${isUserExist.lastName} has commented on your post.`,
+//         NotificationType.COMMENT
+//       );
+//     }
+//   } else if (payload.articleId) {
+//     const article = await prisma.article.findUnique({
+//       where: { id: payload.articleId },
+//     });
+//     if (article && sendNotification) {
+//       await sendNotification(
+//         article.authorId,
+//         isUserExist.id,
+//         `${isUserExist.firstName} ${isUserExist.lastName} has commented on your article.`,
+//         NotificationType.COMMENT
+//       );
+//     }
+//   }
+
+//   return newComment;
+// };
 
 const createComment = async (payload: Partial<Comment>) => {
-  // Check for user validation
+  // Validate user existence
   const isUserExist = await prisma.user.findUnique({
     where: { id: payload.authorId },
   });
@@ -27,18 +108,19 @@ const createComment = async (payload: Partial<Comment>) => {
   }
 
   // Validate the referenced parent (Post or Article)
+  let parent;
   if (payload.postId) {
-    const isPostExist = await prisma.post.findUnique({
+    parent = await prisma.post.findUnique({
       where: { id: payload.postId },
     });
-    if (!isPostExist) {
+    if (!parent) {
       throw new ApiError(400, "Post does not exist");
     }
   } else if (payload.articleId) {
-    const isArticleExist = await prisma.article.findUnique({
+    parent = await prisma.article.findUnique({
       where: { id: payload.articleId },
     });
-    if (!isArticleExist) {
+    if (!parent) {
       throw new ApiError(400, "Article does not exist");
     }
   }
@@ -56,30 +138,20 @@ const createComment = async (payload: Partial<Comment>) => {
     },
   });
 
-  if (!newComment) {
-    throw new ApiError(500, "Error creating comment");
-  }
-
   // Send notification
   if (payload.postId) {
-    const post = await prisma.post.findUnique({
-      where: { id: payload.postId },
-    });
-    if (post && sendNotification) {
+    if (parent && sendNotification) {
       await sendNotification(
-        post.authorId,
+        parent.authorId,
         isUserExist.id,
         `${isUserExist.firstName} ${isUserExist.lastName} has commented on your post.`,
         NotificationType.COMMENT
       );
     }
   } else if (payload.articleId) {
-    const article = await prisma.article.findUnique({
-      where: { id: payload.articleId },
-    });
-    if (article && sendNotification) {
+    if (parent && sendNotification) {
       await sendNotification(
-        article.authorId,
+        parent.authorId,
         isUserExist.id,
         `${isUserExist.firstName} ${isUserExist.lastName} has commented on your article.`,
         NotificationType.COMMENT
@@ -89,7 +161,6 @@ const createComment = async (payload: Partial<Comment>) => {
 
   return newComment;
 };
-
 
 const updateComment = async (payload: Partial<Comment>) => {
   // check for comment validation
