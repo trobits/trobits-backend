@@ -39,7 +39,6 @@ const getTopicById = catchAsync(async (req, res) => {
 
 const getTopicsByAuthor = catchAsync(async (req, res) => {
   const authorId = req.params.authorId;
-  console.log(authorId);
   const topicsByAuthor = await TopicServices.getTopicsByAuthor(authorId);
   sendResponse(res, {
     statusCode: 200,

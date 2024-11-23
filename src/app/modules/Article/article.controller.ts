@@ -46,7 +46,6 @@ const updateArticle = catchAsync(async (req: Request, res: Response) => {
 const deleteArticle = catchAsync(async (req, res) => {
   const articleId = req.params.articleId;
   const deletedArticle = await ArticleServices.deleteArticle(articleId);
-  console.log({deleteArticle})
   sendResponse(res, {
     statusCode: 200,
     success: true,

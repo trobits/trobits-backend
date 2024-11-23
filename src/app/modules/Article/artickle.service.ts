@@ -107,7 +107,6 @@ const updateArticle = async (
 
 const deleteArticle = async (articleId: string) => {
   const isArticleExist = await prisma.article.findUnique({ where: { id: articleId } });
-  console.log({isArticleExist})
   if (!isArticleExist) {
     throw new ApiError(400, "article does not exist with this id!");
   }
