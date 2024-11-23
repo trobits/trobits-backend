@@ -13,10 +13,10 @@ const storage = multer.diskStorage({
 
 export const upload = multer({
   storage: storage,
-  limits: {
-    // 100 MB in bytes
-    fileSize: 100 * 1024 * 1024,
-  },
+  // limits: {
+  //   // 100 MB in bytes
+  //   fileSize: 100 * 1024 * 1024,
+  // },
 });
 
 // upload single image
