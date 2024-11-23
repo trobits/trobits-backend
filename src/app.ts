@@ -19,7 +19,7 @@ export const corsOptions = {
     "http://localhost:3001",
     "*",
   ],
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
@@ -40,7 +40,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 // app.use("/uploads", express.static(path.join("/var/www/uploads")));
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'))); // Serve static files from the "uploads" directory
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads"))); // Serve static files from the "uploads" directory
 
 // Setup API routes
 app.use("/api/v1", router);
