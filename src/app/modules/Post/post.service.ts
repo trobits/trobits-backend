@@ -30,7 +30,6 @@ const createPost = async (
         mimetype: "video/mp4", // Adjust this based on the video type (e.g., detect dynamically)
       } as Express.Multer.File);
       videoUrl = uploadResponse.Location;
-      console.log(uploadResponse); // Cloud URL returned from DigitalOcean
     } catch (error) {
       console.error("Failed to upload video to DigitalOcean:", error);
       throw new ApiError(500, "Failed to upload video to DigitalOcean");

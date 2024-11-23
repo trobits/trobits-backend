@@ -555,7 +555,6 @@ const getAllVerifiedUsers = async () => {
       comments: true,
     },
   });
-  console.log({ users });
   return users;
 };
 
@@ -589,7 +588,6 @@ const getAllBlockedUsers = async () => {
 };
 
 const toggleVerifyAndRecommendedUser = async (payload: Partial<User>) => {
-  console.log(payload.id);
   const user = await prisma.user.findUnique({
     where: { id: payload.id },
   });
@@ -760,7 +758,6 @@ const toggleFollow = async (payload: {
   }
 
   const isFollowing = follower.following.includes(followedId);
-  console.log({ isFollowing });
 
   if (isFollowing) {
     // If currently following, unfollow the user

@@ -190,17 +190,14 @@ export function socketIo(server: Server) {
 
   // Handle new connections to the Socket.io server
   io.on("connection", (socket: Socket) => {
-    console.log("New user connected:", socket.id);
 
     // Allow users to join their own private room based on their user ID
     socket.on("joinUserRoom", (userId) => {
       socket.join(userId);
-      console.log(`User ${userId} joined their private notification room`);
     });
 
     // Handle user disconnection
     socket.on("disconnect", () => {
-      console.log("User disconnected:", socket.id);
     });
   });
 

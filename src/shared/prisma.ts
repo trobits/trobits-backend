@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 async function connectPrisma() {
   try {
     await prisma.$connect();
-    console.log("Prisma connected to the database successfully!");
 
     // initiate super admin
     // initiateSuperAdmin();
@@ -18,7 +17,6 @@ async function connectPrisma() {
   // Graceful shutdown
   process.on("SIGINT", async () => {
     await prisma.$disconnect();
-    console.log("Prisma disconnected due to application termination.");
     process.exit(0);
   });
 }
