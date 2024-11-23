@@ -69,7 +69,7 @@ model Comment {
   likeCount    Int      @default(0)
   dislikeCount Int      @default(0)
 
-  @@unique([postId, articleId]) // Enforces either postId or articleId, but not both
+  // @@unique([postId, articleId])
   @@map("comments")
 }
 
