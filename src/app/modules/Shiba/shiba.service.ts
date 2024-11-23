@@ -129,7 +129,7 @@ const updateShib = async (payload: Partial<Shiba>) => {
 
 const getShibInformation = async () => {
   const shib = await prisma.shiba.findUnique({
-    where: { id: "673c113f98c38a3dff428574" },
+    where: { id: "674171abb13d20efff68527e" },
   });
 
 

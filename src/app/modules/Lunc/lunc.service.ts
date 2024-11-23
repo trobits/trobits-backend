@@ -137,7 +137,7 @@ const updateLunc = async (payload: Partial<Lunc>) => {
 
 const getLuncInformation = async () => {
   const lunc = await prisma.lunc.findUnique({
-    where: { id: "673c11c3d67cc759ca39f03f" },
+    where: { id: "6741740ab13d20efff68527f" },
   });
 
   if (!lunc) {
