@@ -108,7 +108,6 @@ const createPost = async (
 //   return sortedPosts;
 // };
 
-
 const getAllPost = async (category: PostCategory | "") => {
   const whereCondition = category ? { category } : {};
 
@@ -146,7 +145,6 @@ const getAllPost = async (category: PostCategory | "") => {
 
   return sortedPosts;
 };
-
 
 const getAllImagePost = async () => {
   const posts = await prisma.post.findMany({
@@ -403,7 +401,13 @@ const getPostByAuthorId = async (authorId: string) => {
     throw new ApiError(400, "User does not exist with this ID");
   }
   const post = await prisma.post.findMany({
-    where: { authorId: authorId },
+    // where: { authorId: authorId },
+    // where: { author: { followers: { has: authorId } } },
+    where:{
+      OR:[{authorId},
+        {author:{followers:{has:authorId}}}
+      ]
+    },
     include: {
       author: true,
       comments: {
