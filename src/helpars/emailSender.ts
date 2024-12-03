@@ -24,7 +24,6 @@ const emailSender = async (subject: string, email: string, html: string) => {
   try {
     const info = await emailTransport.sendMail(mailOptions);
   } catch (error) {
-    console.error("Error sending email:", error);
     throw new ApiError(500, "Error sending email");
   }
 };
