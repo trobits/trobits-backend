@@ -22,12 +22,20 @@ const createArticle = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllArticle = catchAsync(async (req: Request, res: Response) => {
-  const articles = await ArticleServices.getAllArticle();
+  const options = {
+    page: Number(req.query.page),
+    limit: Number(req.query.limit),
+    sortBy: req.query.sortBy as string,
+    sortOrder: req.query.sortOrder as string,
+  };
+
+  const result = await ArticleServices.getAllArticle(options);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "article fetched successfully",
-    data: articles,
+    message: "Articles fetched successfully",
+    meta: result.meta,
+    data: result.data,
   });
 });
 

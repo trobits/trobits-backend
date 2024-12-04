@@ -70,21 +70,35 @@ const getAllPost = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllImagePost = catchAsync(async (req: Request, res: Response) => {
-  const posts = await PostServices.getAllImagePost();
+  const options = {
+    page: Number(req.query.page || 1),
+    limit: Number(req.query.limit || 10),
+    sortBy: req.query.sortBy as string,
+    sortOrder: req.query.sortOrder as string,
+  };
+  const result = await PostServices.getAllImagePost(options);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "Posts fetched successfully",
-    data: posts,
+    message: "image post fetched successfully",
+    meta: result.meta,
+    data: result.data,
   });
 });
 const getAllVideoPost = catchAsync(async (req: Request, res: Response) => {
-  const posts = await PostServices.getAllVideoPost();
+  const options = {
+    page: Number(req.query.page || 1),
+    limit: Number(req.query.limit || 10),
+    sortBy: req.query.sortBy as string,
+    sortOrder: req.query.sortOrder as string,
+  };
+  const result = await PostServices.getAllVideoPost(options);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "Posts fetched successfully",
-    data: posts,
+    message: "video post fetched successfully",
+    meta: result.meta,
+    data: result.data,
   });
 });
 
@@ -145,16 +159,22 @@ const getPostById = catchAsync(async (req, res) => {
     data: post,
   });
 });
-// get single post by postId
 
 const getPostByAuthorId = catchAsync(async (req, res) => {
   const authorId = req.params.authorId;
-  const post = await PostServices.getPostByAuthorId(authorId);
+  const options = {
+    page: Number(req.query.page || 1),
+    limit: Number(req.query.limit || 10),
+    sortBy: req.query.sortBy as string,
+    sortOrder: req.query.sortOrder as string,
+  };
+  const result = await PostServices.getPostByAuthorId(authorId, options);
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: "Post fetched successfully",
-    data: post,
+    meta: result.meta,
+    data: result.data,
   });
 });
 
@@ -169,5 +189,5 @@ export const PostControllers = {
   getPostByAuthorId,
   createVideoPost,
   getAllImagePost,
-  getAllVideoPost
+  getAllVideoPost,
 };
