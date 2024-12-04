@@ -6,6 +6,7 @@ import { fileUploader } from "../../../utils/uploadFileOnDigitalOcean";
 import path from "path";
 import { Socket } from "socket.io";
 import { sendNotification } from "../../../helpars/socketIo";
+import { paginationHelpers } from "../../../helpars/paginationHelper";
 
 const createPost = async (
   payload: Partial<Post>,
@@ -392,7 +393,17 @@ const getSinglePost = async (postId: string) => {
   return post;
 };
 
-const getPostByAuthorId = async (authorId: string) => {
+const getPostByAuthorId = async (
+  authorId: string,
+  options: {
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: string;
+  }
+) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelpers.calculatePagination(options);
   // check for user validation
   const isUserExist = await prisma.user.findUnique({
     where: { id: authorId },
@@ -403,10 +414,8 @@ const getPostByAuthorId = async (authorId: string) => {
   const post = await prisma.post.findMany({
     // where: { authorId: authorId },
     // where: { author: { followers: { has: authorId } } },
-    where:{
-      OR:[{authorId},
-        {author:{followers:{has:authorId}}}
-      ]
+    where: {
+      OR: [{ authorId }, { author: { followers: { has: authorId } } }],
     },
     include: {
       author: true,
@@ -417,13 +426,33 @@ const getPostByAuthorId = async (authorId: string) => {
         orderBy: { createdAt: "desc" },
       },
     },
+    orderBy: { [sortBy]: sortOrder },
+    skip,
+    take: limit,
   });
+
+  const total = await prisma.post.count({
+    where: {
+      OR: [
+        { authorId: authorId },
+        { author: { followers: { has: authorId } } },
+      ],
+    },
+  });
+
   if (!post) {
     throw new ApiError(404, "Post not found");
   }
-  return post;
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+    data: post,
+  };
 };
-
 export const PostServices = {
   createPost,
   getAllPost,

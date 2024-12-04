@@ -3,6 +3,7 @@ import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { fileUploader } from "../../../utils/uploadFileOnDigitalOcean";
 import path from "path";
+import { paginationHelpers } from "../../../helpars/paginationHelper";
 
 const createArticle = async (
   articleImage: string,
@@ -46,7 +47,15 @@ const createArticle = async (
   return newArticle;
 };
 
-const getAllArticle = async () => {
+const getAllArticle = async (options: {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: string;
+}) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelpers.calculatePagination(options);
+
   const articles = await prisma.article.findMany({
     include: {
       comments: {
@@ -55,13 +64,28 @@ const getAllArticle = async () => {
         },
       },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { [sortBy]: sortOrder },
+    skip,
+    take: limit,
   });
+
+  const total = await prisma.article.count();
+
   if (!articles) {
     throw new ApiError(500, "Failed to fetch articles");
   }
-  return articles;
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+    data: articles,
+  };
 };
+
 
 const updateArticle = async (
   payload: Partial<Article>,
