@@ -149,12 +149,19 @@ const getPostById = catchAsync(async (req, res) => {
 
 const getPostByAuthorId = catchAsync(async (req, res) => {
   const authorId = req.params.authorId;
-  const post = await PostServices.getPostByAuthorId(authorId);
+  const options = {
+    page: Number(req.query.page || 1),
+    limit: Number(req.query.limit || 10),
+    sortBy: req.query.sortBy as string,
+    sortOrder: req.query.sortOrder as string,
+  };
+  const result = await PostServices.getPostByAuthorId(authorId, options);
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: "Post fetched successfully",
-    data: post,
+    meta: result.meta,
+    data: result.data,
   });
 });
 
@@ -169,5 +176,5 @@ export const PostControllers = {
   getPostByAuthorId,
   createVideoPost,
   getAllImagePost,
-  getAllVideoPost
+  getAllVideoPost,
 };
