@@ -147,7 +147,15 @@ const getAllPost = async (category: PostCategory | "") => {
   return sortedPosts;
 };
 
-const getAllImagePost = async () => {
+const getAllImagePost = async (options: {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: string;
+}) => {
+  // all pagination thing
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelpers.calculatePagination(options);
   const posts = await prisma.post.findMany({
     where: {
       category: "IMAGE",
@@ -162,11 +170,21 @@ const getAllImagePost = async () => {
         },
       },
     },
+    orderBy: { [sortBy]: sortOrder },
+    skip,
+    take: limit,
   });
 
   if (!posts) {
     throw new ApiError(500, "Failed to fetch posts");
   }
+
+  const total = await prisma.post.count({
+    where: {
+      category: "IMAGE",
+      topic: null,
+    },
+  });
   // Calculate score for each post and sort by score in descending order
   const sortedPosts = posts
     .map((post) => ({
@@ -176,9 +194,24 @@ const getAllImagePost = async () => {
     }))
     .sort((a, b) => b.score - a.score); // Sort by score in descending order
 
-  return sortedPosts;
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+    data: sortedPosts,
+  };
 };
-const getAllVideoPost = async () => {
+const getAllVideoPost = async (options: {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: string;
+}) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelpers.calculatePagination(options);
   const posts = await prisma.post.findMany({
     where: {
       category: "VIDEO",
@@ -193,11 +226,20 @@ const getAllVideoPost = async () => {
         },
       },
     },
+    orderBy: { [sortBy]: sortOrder },
+    skip,
+    take: limit,
   });
 
   if (!posts) {
     throw new ApiError(500, "Failed to fetch posts");
   }
+  const total = await prisma.post.count({
+    where: {
+      category: "VIDEO",
+      topic: null,
+    },
+  });
   // Calculate score for each post and sort by score in descending order
   const sortedPosts = posts
     .map((post) => ({
@@ -207,7 +249,15 @@ const getAllVideoPost = async () => {
     }))
     .sort((a, b) => b.score - a.score); // Sort by score in descending order
 
-  return sortedPosts;
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+    data: sortedPosts,
+  };
 };
 
 const updatePost = async (payload: Partial<IPost>, postImage: string) => {
