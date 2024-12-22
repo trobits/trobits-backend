@@ -3,6 +3,7 @@ import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { Socket } from "socket.io";
 import { sendNotification } from "../../../helpars/socketIo";
+import { Request } from "express";
 
 // const createComment = async (payload: Partial<Comment>) => {
 //   // Check for user validation
@@ -328,10 +329,60 @@ const addOrRemoveDisike = async (payload: Partial<Comment>) => {
   }
 };
 
+//reply on comment
+const replyOnComment = async (req: Request) => {
+  //user id
+  const user: any = req.user;
+  const userId = user.id;
+  //comment id
+  const commentId = req.params.commentId;
+  const payload = req.body;
+  // check for user validation
+  const isUserExist = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  if (!isUserExist) {
+    throw new ApiError(400, "User does not exist with this ID");
+  }
+  // check for comment validation
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+  });
+  if (!comment) {
+    throw new ApiError(404, "Comment not found");
+  }
+
+  //create reply to a comment
+  const newComment = await prisma.comment.create({
+    data: {
+      content: payload.content as string,
+      authorId: userId,
+      postId: comment.postId || null,
+      articleId: comment.articleId || null,
+      replyToId: commentId,
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          profileImage: true,
+        },
+      },
+    },
+  });
+  return newComment;
+};
+
 export const CommentServices = {
   createComment,
   updateComment,
   deleteComment,
   addOrRemoveLike,
   addOrRemoveDisike,
+  replyOnComment,
 };

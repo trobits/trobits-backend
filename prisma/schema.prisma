@@ -53,6 +53,26 @@ model User {
 //   @@map("comments")
 // }
 
+// model Comment {
+//   id           String   @id @default(auto()) @map("_id") @db.ObjectId
+//   content      String
+//   createdAt    DateTime @default(now())
+//   updatedAt    DateTime @updatedAt
+//   authorId     String   @db.ObjectId
+//   author       User     @relation("UserComments", fields: [authorId], references: [id])
+//   postId       String?  @db.ObjectId
+//   post         Post?    @relation("PostComments", fields: [postId], references: [id])
+//   articleId    String?  @db.ObjectId
+//   article      Article? @relation("ArticleComments", fields: [articleId], references: [id])
+//   likers       String[] @db.ObjectId
+//   dislikers    String[] @db.ObjectId
+//   likeCount    Int      @default(0)
+//   dislikeCount Int      @default(0)
+
+//   // @@unique([postId, articleId])
+//   @@map("comments")
+// }
+
 model Comment {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   content      String
@@ -69,7 +89,11 @@ model Comment {
   likeCount    Int      @default(0)
   dislikeCount Int      @default(0)
 
-  // @@unique([postId, articleId])
+  // For replies
+  replyToId String?   @db.ObjectId // ID of the comment being replied to (if any)
+  replies   Comment[] @relation("CommentReplies")
+  parent    Comment?  @relation("CommentReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+ 
   @@map("comments")
 }
 

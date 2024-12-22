@@ -26,6 +26,7 @@
 
 import { Router } from "express";
 import { CommentControllers } from "./comment.controller";
+import { verifyUser } from "../../middlewares/auth";
 // import { verifyUser } from "../../middlewares/auth";
 
 const router = Router();
@@ -55,5 +56,8 @@ router.delete(
   // verifyUser,
   CommentControllers.deleteComment
 );
+
+// add reply to the comment
+router.post("/reply/:commentId", verifyUser, CommentControllers.replyOnComment);
 
 export const commentRoutes = router;

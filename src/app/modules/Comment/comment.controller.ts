@@ -63,10 +63,21 @@ const addOrRemoveDislike = catchAsync(async (req, res) => {
   });
 });
 
+const replyOnComment = catchAsync(async (req, res) => {
+  const addOrRemoveLike = await CommentServices.replyOnComment(req);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Comment updated successfully.",
+    data: addOrRemoveLike,
+  });
+});
+
 export const CommentControllers = {
   createComment,
   updateComment,
   deleteComment,
   addOrRemoveLike,
-  addOrRemoveDislike
+  addOrRemoveDislike,
+  replyOnComment
 };

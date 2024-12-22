@@ -14,18 +14,6 @@ interface Files {
   video?: Express.Multer.File[]; // Optional array of video files
 }
 
-// const createPost = catchAsync(async (req: Request, res: Response) => {
-//   const postImage = req.file?.path || "";
-//   const payload = CreatePostSchema.parse(req.body);
-//   const newPost = await PostServices.createPost(payload, postImage);
-//   sendResponse(res, {
-//     statusCode: 201,
-//     success: true,
-//     message: "Post created successfully",
-//     data: newPost,
-//   });
-// });
-
 const createPost = catchAsync(async (req: Request, res: Response) => {
   const payload = CreatePostSchema.parse(req.body);
   // Ensure `req.files` has the correct type
@@ -33,6 +21,7 @@ const createPost = catchAsync(async (req: Request, res: Response) => {
 
   let imageUrl: string | null = null;
   let videoUrl: string | null = null;
+  const userId = req.user?.id;
 
   // Check if image or video is provided and set their paths
   if (files?.image && files.image.length > 0) {
@@ -45,6 +34,7 @@ const createPost = catchAsync(async (req: Request, res: Response) => {
 
   const newPost = await PostServices.createPost(
     payload,
+    userId,
     imageUrl as string,
     videoUrl as string
   );
@@ -111,9 +101,11 @@ const deletePost = catchAsync(async (req, res) => {
   });
 });
 
+//add remove like
 const addOrRemoveLike = catchAsync(async (req, res) => {
   const payload = addOrRemoveLikeSchema.parse(req.body);
-  const addOrRemoveLike = await PostServices.addOrRemoveLike(payload);
+  const userId = req.user?.id;
+  const addOrRemoveLike = await PostServices.addOrRemoveLike(payload, userId);
   sendResponse(res, {
     statusCode: 200,
     success: true,
