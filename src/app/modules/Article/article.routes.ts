@@ -28,7 +28,7 @@ router.patch(
 router.delete("/delete-article/:articleId", articleControllers.deleteArticle);
 
 // add or remove like
-router.patch("/add-remove-like", articleControllers.addOrRemoveLike);
+router.patch("/toggle-like", articleControllers.addOrRemoveLike);
 
 // get post by id
 router.get("/:articleId", articleControllers.getSingleArticle);

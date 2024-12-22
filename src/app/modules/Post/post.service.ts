@@ -10,12 +10,13 @@ import { paginationHelpers } from "../../../helpars/paginationHelper";
 
 const createPost = async (
   payload: Partial<Post>,
+  userId: string,
   postImage: string,
   postVideo: string
 ) => {
   // Check user validation
   const isAuthorExist = await prisma.user.findUnique({
-    where: { id: payload.authorId },
+    where: { id: userId },
   });
   if (!isAuthorExist) {
     throw new ApiError(404, "Author not found");
@@ -57,7 +58,7 @@ const createPost = async (
   const newPost = await prisma.post.create({
     data: {
       content: payload.content as string,
-      authorId: payload.authorId as string,
+      authorId: userId as string,
       image: imageUrl || "",
       video: videoUrl || "",
       topicId: payload.topicId || null,
@@ -114,12 +115,42 @@ const getAllPost = async (category: PostCategory | "") => {
 
   const posts = await prisma.post.findMany({
     where: whereCondition,
+    orderBy:{createdAt:"desc"},
     include: {
-      author: true,
+      author: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          profileImage: true,
+        },
+      },
       topic: true,
       comments: {
         include: {
-          author: true,
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              profileImage: true,
+            },
+          },
+          replies: {
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  profileImage: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -129,22 +160,22 @@ const getAllPost = async (category: PostCategory | "") => {
     throw new ApiError(500, "Failed to fetch posts");
   }
 
-  const sortedPosts = posts
-    .map((post) => {
-      const commentCount = post.comments.length;
-      const likeCount = post.likeCount;
-      const postAgeInHours =
-        (new Date().getTime() - new Date(post.createdAt).getTime()) / 3600000;
+  // const sortedPosts = posts
+  //   .map((post) => {
+  //     const commentCount = post.comments.length;
+  //     const likeCount = post.likeCount;
+  //     const postAgeInHours =
+  //       (new Date().getTime() - new Date(post.createdAt).getTime()) / 3600000;
 
-      // Adjust score with time-decay factor
-      const score =
-        (commentCount * 2 + likeCount) / Math.pow(1 + postAgeInHours, 0.5); // Time-decay factor
+  //     // Adjust score with time-decay factor
+  //     const score =
+  //       (commentCount * 2 + likeCount) / Math.pow(1 + postAgeInHours, 0.5); // Time-decay factor
 
-      return { ...post, commentCount, score };
-    })
-    .sort((a, b) => b.score - a.score);
+  //     return { ...post, commentCount, score };
+  //   })
+  //   .sort((a, b) => b.score - a.score);
 
-  return sortedPosts;
+  return posts;
 };
 
 const getAllImagePost = async () => {
@@ -152,13 +183,44 @@ const getAllImagePost = async () => {
     where: {
       category: "IMAGE",
       topic: null,
+      
     },
+    orderBy:{createdAt:"desc"},
     include: {
-      author: true,
+      author: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          profileImage: true,
+        },
+      },
       topic: true,
       comments: {
         include: {
-          author: true,
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              profileImage: true,
+            },
+          },
+          replies: {
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  profileImage: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -167,29 +229,60 @@ const getAllImagePost = async () => {
   if (!posts) {
     throw new ApiError(500, "Failed to fetch posts");
   }
-  // Calculate score for each post and sort by score in descending order
-  const sortedPosts = posts
-    .map((post) => ({
-      ...post,
-      commentCount: post.comments.length, // Count comments for each post
-      score: post.comments.length * 2 + post.likeCount, // Calculate the score
-    }))
-    .sort((a, b) => b.score - a.score); // Sort by score in descending order
+  // // Calculate score for each post and sort by score in descending order
+  // const sortedPosts = posts
+  //   .map((post) => ({
+  //     ...post,
+  //     commentCount: post.comments.length, // Count comments for each post
+  //     score: post.comments.length * 2 + post.likeCount, // Calculate the score
+  //   }))
+  //   .sort((a, b) => b.score - a.score); // Sort by score in descending order
 
-  return sortedPosts;
+  return posts;
 };
+
 const getAllVideoPost = async () => {
   const posts = await prisma.post.findMany({
     where: {
       category: "VIDEO",
       topic: null,
     },
+    orderBy:{createdAt:"desc"},
     include: {
-      author: true,
+      author: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          profileImage: true,
+        },
+      },
       topic: true,
       comments: {
         include: {
-          author: true,
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              profileImage: true,
+            },
+          },
+          replies: {
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  profileImage: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -199,15 +292,15 @@ const getAllVideoPost = async () => {
     throw new ApiError(500, "Failed to fetch posts");
   }
   // Calculate score for each post and sort by score in descending order
-  const sortedPosts = posts
-    .map((post) => ({
-      ...post,
-      commentCount: post.comments.length, // Count comments for each post
-      score: post.comments.length * 2 + post.likeCount, // Calculate the score
-    }))
-    .sort((a, b) => b.score - a.score); // Sort by score in descending order
+  // const sortedPosts = posts
+  //   .map((post) => ({
+  //     ...post,
+  //     commentCount: post.comments.length, // Count comments for each post
+  //     score: post.comments.length * 2 + post.likeCount, // Calculate the score
+  //   }))
+  //   .sort((a, b) => b.score - a.score); // Sort by score in descending order
 
-  return sortedPosts;
+  return posts;
 };
 
 const updatePost = async (payload: Partial<IPost>, postImage: string) => {
@@ -287,25 +380,26 @@ const deletePost = async (postId: string) => {
   return true;
 };
 
-const addOrRemoveLike = async (payload: Partial<Post>) => {
+const addOrRemoveLike = async (payload: Partial<Post>, userId: string) => {
   // check for user validation
   const isUserExist = await prisma.user.findUnique({
     where: {
-      id: payload.authorId,
+      id: userId,
     },
   });
   if (!isUserExist) {
     throw new ApiError(400, "User does not exist with this ID");
   }
+
   // check for post validation
-  const post = await prisma.post.findUnique({
+  const post = await prisma.post.findFirst({
     where: { id: payload.id },
   });
   if (!post) {
     throw new ApiError(404, "Post not found");
   }
   // define userid and is liked already or not
-  const userId = payload.authorId as string;
+  // const userId = userid as string;
   const isLiked = post.likers.includes(userId);
 
   // Update post like status
@@ -333,7 +427,7 @@ const addOrRemoveLike = async (payload: Partial<Post>) => {
       NotificationType.LIKE
     );
   } else {
-    console.error("sendNotification is not available.");
+    console.log("sendNotification is not available.");
   }
 
   return updatedPost;
@@ -363,6 +457,19 @@ const getAllPostsByTopicId = async (topicId: string) => {
               profileImage: true,
             },
           },
+          replies: {
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  profileImage: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -381,7 +488,28 @@ const getSinglePost = async (postId: string) => {
       author: true,
       comments: {
         include: {
-          author: true,
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              profileImage: true,
+            },
+          },
+          replies: {
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  profileImage: true,
+                },
+              },
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       },
@@ -421,7 +549,28 @@ const getPostByAuthorId = async (
       author: true,
       comments: {
         include: {
-          author: true,
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              profileImage: true,
+            },
+          },
+          replies: {
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  profileImage: true,
+                },
+              },
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       },
