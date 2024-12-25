@@ -66,16 +66,15 @@ import prisma from "../../shared/prisma";
 export const verifyUser = catchAsync(async (req, res, next) => {
   try {
     const token =
-      req.cookies?.refreshToken ||
+      req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
-
     if (!token) {
       throw new ApiError(401, "Unauthorized request");
     }
 
     const decodedToken: JwtPayload | any = jwt.verify(
       token,
-      config.jwt.refresh_token_secret as Secret
+      config.jwt.jwt_secret as Secret
     );
 
     const user = await prisma.user.findUnique({

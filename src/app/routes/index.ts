@@ -7,6 +7,8 @@ import { articleRoutes } from "../modules/Article/article.routes";
 import { shibRoutes } from "../modules/Shiba/shiba.routes";
 import { luncRoutes } from "../modules/Lunc/lunc.routes";
 import { contactUsRoutes } from "../modules/ContactUs/contactUs.routes";
+import { shibaBurnRoutes } from "../modules/ShibaBurn/shibaBurn.route";
+import { luncBurnRoutes } from "../modules/LuncBurn/luncBurn.route";
 
 const router = express.Router();
 
@@ -38,6 +40,14 @@ const moduleRoutes = [
   {
     path: "/lunc",
     route: luncRoutes,
+  },
+  {
+    path: "/lunc-archive",
+    route: luncBurnRoutes,
+  },
+  {
+    path: "/shiba-archive",
+    route: shibaBurnRoutes,
   },
   {
     path: "/contactus",

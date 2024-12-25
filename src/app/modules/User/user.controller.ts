@@ -92,7 +92,7 @@ const loginUser = catchAsync(async (req, res) => {
     httpOnly: true,
     secure: true,
   };
-  res.cookie("refreshToken", refreshToken, options).status(200).json({
+  res.cookie("accessToken", accessToken, options).status(200).json({
     success: true,
     message: "user loged in successfully",
     token: { accessToken },
