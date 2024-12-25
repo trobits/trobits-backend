@@ -93,7 +93,7 @@ model Comment {
   replyToId String?   @db.ObjectId // ID of the comment being replied to (if any)
   replies   Comment[] @relation("CommentReplies")
   parent    Comment?  @relation("CommentReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
- 
+
   @@map("comments")
 }
 
@@ -185,6 +185,43 @@ model Lunc {
   burns30Day   String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model ShibaBurnArchive {
+  id    String       @id @default(auto()) @map("_id") @db.ObjectId
+  name  CurrencyName @default(SHIBA)
+  burns ShibaBurn[]
+}
+
+model ShibaBurn {
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  currency           CurrencyName      @default(SHIBA)
+  date               String            @unique
+  transactionRef     String
+  burnCount          Float
+  shibaBurnArchiveId String?           @db.ObjectId
+  ShibaBurnArchive   ShibaBurnArchive? @relation(fields: [shibaBurnArchiveId], references: [id])
+}
+
+model LuncBurn {
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  currency          CurrencyName     @default(LUNC)
+  date              String           @unique
+  transactionRef    String
+  burnCount         Float
+  luncBurnArchiveId String?          @db.ObjectId
+  LuncBurnArchive   LuncBurnArchive? @relation(fields: [luncBurnArchiveId], references: [id])
+}
+
+model LuncBurnArchive {
+  id    String       @id @default(auto()) @map("_id") @db.ObjectId
+  name  CurrencyName @default(LUNC)
+  burns LuncBurn[]
+}
+
+enum CurrencyName {
+  SHIBA
+  LUNC
 }
 
 enum NotificationType {
