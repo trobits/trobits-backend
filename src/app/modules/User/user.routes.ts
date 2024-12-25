@@ -11,7 +11,7 @@ router.post("/create-user", UserController.createUser);
 router.post("/login", UserController.loginUser);
 router.post("/verify-otp", UserController.verityOtp);
 // refresh accessToken with refresh token
-router.get("/access-token", UserController.refreshAccessToken);
+router.post("/access-token", UserController.refreshAccessToken);
 // logout user
 router.get(
   "/logout",

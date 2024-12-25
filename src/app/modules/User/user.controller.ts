@@ -95,7 +95,7 @@ const loginUser = catchAsync(async (req, res) => {
   res.cookie("accessToken", accessToken, options).status(200).json({
     success: true,
     message: "user loged in successfully",
-    token: { accessToken },
+    token: { accessToken, refreshToken },
     data: loggedInUser,
   });
 });
@@ -239,7 +239,6 @@ const forgotPassword = catchAsync(async (req, res) => {
   });
 });
 
-
 const setNewPassword = catchAsync(async (req, res) => {
   const payload = req.body;
   const sendOtp = await UserService.setNewPassword(payload);
@@ -251,8 +250,6 @@ const setNewPassword = catchAsync(async (req, res) => {
     data: sendOtp,
   });
 });
-
-
 
 export const UserController = {
   createUser,
