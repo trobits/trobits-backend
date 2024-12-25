@@ -49,7 +49,7 @@ router.get(
 //get all lunc burn
 router.get(
   "/all-lunc-burn",
-  verifyUser,
+  // verifyUser,
   LuncBurnController.getAllLuncBurn
 );
 
