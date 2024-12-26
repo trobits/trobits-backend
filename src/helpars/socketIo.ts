@@ -1,4 +1,4 @@
-import { NotificationType } from "@prisma/client";
+import { NotificationType, PostCategory } from "@prisma/client";
 import { Server } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { corsOptions } from "../app";
@@ -17,7 +17,9 @@ export function socketIo(server: Server) {
     recipientId: string,
     senderId: string,
     message: string,
-    type: NotificationType
+    type: NotificationType,
+    postId?: string,
+    category?: PostCategory
   ) => {
     try {
       // Save the notification to the database
@@ -28,6 +30,8 @@ export function socketIo(server: Server) {
           message,
           type,
           isRead: false,
+          postId,
+          category,
         },
       });
 

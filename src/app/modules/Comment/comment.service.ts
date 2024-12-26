@@ -146,7 +146,8 @@ const createComment = async (payload: Partial<Comment>) => {
         parent.authorId,
         isUserExist.id,
         `${isUserExist.firstName} ${isUserExist.lastName} has commented on your post.`,
-        NotificationType.COMMENT
+        NotificationType.COMMENT,
+        parent?.id
       );
     }
   } else if (payload.articleId) {
