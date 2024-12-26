@@ -115,7 +115,7 @@ const getAllPost = async (category: PostCategory | "") => {
 
   const posts = await prisma.post.findMany({
     where: whereCondition,
-    orderBy:{createdAt:"desc"},
+    orderBy: { createdAt: "desc" },
     include: {
       author: {
         select: {
@@ -183,9 +183,8 @@ const getAllImagePost = async () => {
     where: {
       category: "IMAGE",
       topic: null,
-      
     },
-    orderBy:{createdAt:"desc"},
+    orderBy: { createdAt: "desc" },
     include: {
       author: {
         select: {
@@ -247,7 +246,7 @@ const getAllVideoPost = async () => {
       category: "VIDEO",
       topic: null,
     },
-    orderBy:{createdAt:"desc"},
+    orderBy: { createdAt: "desc" },
     include: {
       author: {
         select: {
@@ -424,7 +423,9 @@ const addOrRemoveLike = async (payload: Partial<Post>, userId: string) => {
       `${isUserExist.firstName + " " + isUserExist.lastName} has ${
         isLiked ? "Dislike" : "Like"
       } your post`,
-      NotificationType.LIKE
+      NotificationType.LIKE,
+      updatedPost?.id as string,
+      updatedPost?.category
     );
   } else {
     console.log("sendNotification is not available.");
