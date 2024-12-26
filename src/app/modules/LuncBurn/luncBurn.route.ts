@@ -42,7 +42,7 @@ router.get(
 //get both shiba and lunc burn archive main model
 router.get(
   "/all-archive",
-  verifyUser,
+  // verifyUser,
   LuncBurnController.getShibAndLuncBurnArchive
 );
 
