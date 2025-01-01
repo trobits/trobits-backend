@@ -178,19 +178,22 @@ const getAllShibaBurn = async (req: Request) => {
     throw new ApiError(400, "Invalid or missing 'year' or 'month' query parameters");
   }
 
-  // Calculate date range as ISO strings
-  const startDate = new Date(parsedYear, parsedMonth - 1, 1).toISOString(); // Start of the month
-  const endDate = new Date(parsedYear, parsedMonth, 1).toISOString(); // Start of the next month
+  // Set start and end of the month for the given year and month, in UTC
+  const startDate = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1)); // Start of the month in UTC
+  const endDate = new Date(Date.UTC(parsedYear, parsedMonth, 1)); // Start of the next month in UTC
 
-  // Define where condition
+  // Log the dates to ensure they are correct
+  console.log("Start Date for ShibaBurn:", startDate);
+  console.log("End Date for ShibaBurn:", endDate);
+
   const whereCondition = {
     date: {
-      gte: startDate,
-      lt: endDate,
+      gte: startDate.toISOString(),
+      lt: endDate.toISOString(),
     },
   };
 
-  // Calculate pagination
+  // Pagination calculation
   const { page, limit, skip, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(options);
 
@@ -198,7 +201,7 @@ const getAllShibaBurn = async (req: Request) => {
   const validSortFields = ["date", "burnAmount", "name"]; // Example fields
   const sortField = validSortFields.includes(sortBy) ? sortBy : "date";
 
-  // Query database
+  // Query for full date range
   const result = await prisma.shibaBurn.findMany({
     where: whereCondition,
     skip,
@@ -212,8 +215,10 @@ const getAllShibaBurn = async (req: Request) => {
     throw new ApiError(500, "Failed to get ShibaBurn record");
   }
 
+  console.log({ result });
   return result;
 };
+
 
 
 
