@@ -139,26 +139,30 @@ const getAllShibaBurn = async (req: Request) => {
   //     },
   //   };
   // }
-  if (parsedMonth && parsedYear) {
-    // Set startDate to the start of the month at midnight UTC
-    startDate = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1)); // First day of the month at midnight UTC
-    // Set endDate to the first day of the next month at midnight UTC
-    endDate = new Date(Date.UTC(parsedYear, parsedMonth, 1));
-  
-    // Ensure the end date is at the end of the day for the given month
-    endDate.setUTCDate(endDate.getUTCDate() + 1); // Adjust to include the whole last day of the month
-  
-    // Log the start and end dates
-    console.log("Start Date: ", startDate);
-    console.log("End Date: ", endDate);
-  
-    whereCondition = {
-      date: {
-        gte: startDate, // From the start of the month
-        lt: endDate, // Up to the start of the next month
-      },
-    };
-  }
+
+if (parsedMonth && parsedYear) {
+  // Set startDate to the start of the month at midnight UTC
+  startDate = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1)).toISOString(); // Convert to ISO string
+  // Set endDate to the first day of the next month at midnight UTC
+  endDate = new Date(Date.UTC(parsedYear, parsedMonth, 1)).toISOString();
+
+  // Ensure the end date is at the end of the day for the given month
+  endDate = new Date(Date.UTC(parsedYear, parsedMonth, 1)); // Reset the time to midnight
+  endDate.setUTCDate(endDate.getUTCDate() + 1); // Adjust to include the whole last day of the month
+  endDate = endDate.toISOString(); // Convert to ISO string
+
+  // Log the start and end dates
+  console.log("Start Date: ", startDate);
+  console.log("End Date: ", endDate);
+
+  whereCondition = {
+    date: {
+      gte: startDate, // From the start of the month
+      lt: endDate, // Up to the start of the next month
+    },
+  };
+}
+
   //calculate pagination
   const { page, limit, skip, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(options);
@@ -171,6 +175,7 @@ const getAllShibaBurn = async (req: Request) => {
       date: "desc",
     },
   });
+  console.log({result})
   if (!result) {
     throw new ApiError(500, "Failed to get ShibaBurn record");
   }
