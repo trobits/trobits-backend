@@ -193,20 +193,21 @@ const getAllLuncBurn = async (req: Request) => {
 
   // Validate year and month
   if (!parsedYear || !parsedMonth || isNaN(parsedYear) || isNaN(parsedMonth)) {
-    throw new ApiError(
-      400,
-      "Invalid or missing 'year' or 'month' query parameters"
-    );
+    throw new ApiError(400, "Invalid or missing 'year' or 'month' query parameters");
   }
 
-  // Set start and end of the day for the given month and year
-  const startDate = new Date(parsedYear, parsedMonth - 1, 1).toISOString(); // Start of the month
-  const endDate = new Date(parsedYear, parsedMonth, 1).toISOString(); // Start of the next month
+  // Set start and end of the month for the given year and month, in UTC
+  const startDate = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1)); // Start of the month in UTC
+  const endDate = new Date(Date.UTC(parsedYear, parsedMonth, 1)); // Start of the next month in UTC
+
+  // Log the dates to ensure they are correct
+  console.log("Start Date for LuncBurn:", startDate);
+  console.log("End Date for LuncBurn:", endDate);
 
   const whereCondition = {
     date: {
-      gte: startDate,
-      lt: endDate,
+      gte: startDate.toISOString(),
+      lt: endDate.toISOString(),
     },
   };
 
@@ -218,22 +219,30 @@ const getAllLuncBurn = async (req: Request) => {
   const validSortFields = ["date", "burnAmount", "name"]; // Example fields
   const sortField = validSortFields.includes(sortBy) ? sortBy : "date";
 
-  // Query for full date range
-  const result = await prisma.luncBurn.findMany({
-    where: whereCondition,
-    skip,
-    take: limit,
-    orderBy: {
-      [sortField]: sortOrder === "asc" ? "asc" : "desc",
-    },
-  });
+  try {
+    // Query for full date range
+    const result = await prisma.luncBurn.findMany({
+      where: whereCondition,
+      skip,
+      take: limit,
+      orderBy: {
+        [sortField]: sortOrder === "asc" ? "asc" : "desc",
+      },
+    });
 
-  if (!result) {
+    // Check if result is empty and return an empty array if no data found
+    if (result.length === 0) {
+      return [];
+    }
+
+    console.log({ result });
+    return result;
+  } catch (error) {
+    console.error("Error fetching LuncBurn records:", error);
     throw new ApiError(500, "Failed to get LuncBurn record");
   }
-
-  return result;
 };
+
 
 export const LuncBurnServices = {
   createLuncBurnArchiveIntoDB,
