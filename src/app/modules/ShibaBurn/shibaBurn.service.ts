@@ -108,56 +108,115 @@ const getShibaBurnByMonthAndYear = async (req: Request) => {
 };
 
 //get all shiba burn
+// const getAllShibaBurn = async (req: Request) => {
+//   //paginate options
+//   const options = {
+//     page: Number(req.query.page),
+//     limit: Number(req.query.limit) || 31,
+//     sortBy: req.query.sortBy as string,
+//     sortOrder: req.query.sortOrder as string,
+//   };
+
+//   //get month and year
+//   const { year, month } = req.query;
+//   const parsedYear = parseInt(year as string, 10);
+//   const parsedMonth = parseInt(month as string, 10);
+
+//   //initialize start and end date
+//   let startDate;
+//   let endDate;
+//   let whereCondition = {};
+
+//   if (parsedMonth && parsedYear) {
+//     // Start of the month
+//     startDate = new Date(parsedYear, parsedMonth - 1, 1).toISOString();
+//     // Start of the next month
+//     endDate = new Date(parsedYear, parsedMonth, 1).toISOString();
+//     whereCondition = {
+//       date: {
+//         gte: startDate,
+//         lt: endDate,
+//       },
+//     };
+//   }
+
+//   //calculate pagination
+//   const { page, limit, skip, sortBy, sortOrder } =
+//     paginationHelpers.calculatePagination(options);
+
+//   const result = await prisma.shibaBurn.findMany({
+//     where: whereCondition,
+//     skip,
+//     take: limit,
+//     orderBy: {
+//       date: "desc",
+//     },
+//   });
+//   if (!result) {
+//     throw new ApiError(500, "Failed to get ShibaBurn record");
+//   }
+//   console.log({result})
+//   return result;
+// };
+
 const getAllShibaBurn = async (req: Request) => {
-  //paginate options
+  // Pagination options
   const options = {
-    page: Number(req.query.page),
+    page: Number(req.query.page) || 1,
     limit: Number(req.query.limit) || 31,
     sortBy: req.query.sortBy as string,
     sortOrder: req.query.sortOrder as string,
   };
 
-  //get month and year
+  // Get year and month
   const { year, month } = req.query;
   const parsedYear = parseInt(year as string, 10);
   const parsedMonth = parseInt(month as string, 10);
 
-  //initialize start and end date
-  let startDate;
-  let endDate;
-  let whereCondition = {};
-
-  if (parsedMonth && parsedYear) {
-    // Start of the month
-    startDate = new Date(parsedYear, parsedMonth - 1, 1).toISOString();
-    // Start of the next month
-    endDate = new Date(parsedYear, parsedMonth, 1).toISOString();
-    whereCondition = {
-      date: {
-        gte: startDate,
-        lt: endDate,
-      },
-    };
+  // Validate year and month
+  if (!parsedYear || !parsedMonth || isNaN(parsedYear) || isNaN(parsedMonth)) {
+    throw new ApiError(400, "Invalid or missing 'year' or 'month' query parameters");
   }
 
-  //calculate pagination
+  // Calculate date range as ISO strings
+  const startDate = new Date(parsedYear, parsedMonth - 1, 1).toISOString(); // Start of the month
+  const endDate = new Date(parsedYear, parsedMonth, 1).toISOString(); // Start of the next month
+
+  // Define where condition
+  const whereCondition = {
+    date: {
+      gte: startDate,
+      lt: endDate,
+    },
+  };
+
+  // Calculate pagination
   const { page, limit, skip, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(options);
 
+  // Validate sorting fields
+  const validSortFields = ["date", "burnAmount", "name"]; // Example fields
+  const sortField = validSortFields.includes(sortBy) ? sortBy : "date";
+
+  // Query database
   const result = await prisma.shibaBurn.findMany({
     where: whereCondition,
     skip,
     take: limit,
     orderBy: {
-      date: "desc",
+      [sortField]: sortOrder === "asc" ? "asc" : "desc",
     },
   });
+
   if (!result) {
     throw new ApiError(500, "Failed to get ShibaBurn record");
   }
-  console.log({result})
+
   return result;
 };
+
+
+
 
 export const ShibaBurnServices = {
   createShibaBurnArchiveIntoDB,
