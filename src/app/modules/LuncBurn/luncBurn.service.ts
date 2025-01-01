@@ -196,24 +196,21 @@ const getAllLuncBurn = async (req: Request) => {
     throw new ApiError(400, "Invalid or missing 'year' or 'month' query parameters");
   }
 
-  // Set start and end of the month for the given year and month, in UTC
-  const startDate = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1)); // Start of the month in UTC
-  const endDate = new Date(Date.UTC(parsedYear, parsedMonth, 1)); // Start of the next month in UTC
-
-  // Log the dates to ensure they are correct
-  console.log("Start Date for LuncBurn:", startDate);
-  console.log("End Date for LuncBurn:", endDate);
+  // Format start and end dates to 'YYYY-MM-DD' (without time)
+  const startDateStr = `${parsedYear}-${String(parsedMonth).padStart(2, '0')}-01`; // '2025-01-01'
+  
+  // Set end date to the first day of the next month (exclusive)
+  const endDateStr = `${parsedYear}-${String(parsedMonth + 1).padStart(2, '0')}-01`; // '2025-02-01'
 
   const whereCondition = {
     date: {
-      gte: startDate.toISOString(),
-      lt: endDate.toISOString(),
+      gte: startDateStr, // From the start of the month (inclusive)
+      lt: endDateStr,    // Up to the start of the next month (exclusive)
     },
   };
 
   // Pagination calculation
-  const { page, limit, skip, sortBy, sortOrder } =
-    paginationHelpers.calculatePagination(options);
+  const { page, limit, skip, sortBy, sortOrder } = paginationHelpers.calculatePagination(options);
 
   // Validate sorting fields
   const validSortFields = ["date", "burnAmount", "name"]; // Example fields
@@ -235,13 +232,13 @@ const getAllLuncBurn = async (req: Request) => {
       return [];
     }
 
-    console.log({ result });
     return result;
   } catch (error) {
     console.error("Error fetching LuncBurn records:", error);
     throw new ApiError(500, "Failed to get LuncBurn record");
   }
 };
+
 
 
 export const LuncBurnServices = {
