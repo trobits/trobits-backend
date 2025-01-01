@@ -140,15 +140,22 @@ const getAllShibaBurn = async (req: Request) => {
   //   };
   // }
   if (parsedMonth && parsedYear) {
-    // Set startDate to the start of the month (00:00 UTC)
-    startDate = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1, 0, 0, 0)).toISOString();
-    // Set endDate to the start of the next month (00:00 UTC)
-    endDate = new Date(Date.UTC(parsedYear, parsedMonth, 1, 0, 0, 0)).toISOString();
-    
+    // Set startDate to the start of the month at midnight UTC
+    startDate = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1)); // First day of the month at midnight UTC
+    // Set endDate to the first day of the next month at midnight UTC
+    endDate = new Date(Date.UTC(parsedYear, parsedMonth, 1));
+  
+    // Ensure the end date is at the end of the day for the given month
+    endDate.setUTCDate(endDate.getUTCDate() + 1); // Adjust to include the whole last day of the month
+  
+    // Log the start and end dates
+    console.log("Start Date: ", startDate);
+    console.log("End Date: ", endDate);
+  
     whereCondition = {
       date: {
-        gte: startDate,
-        lt: endDate,
+        gte: startDate, // From the start of the month
+        lt: endDate, // Up to the start of the next month
       },
     };
   }
