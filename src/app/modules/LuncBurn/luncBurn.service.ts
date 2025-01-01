@@ -172,6 +172,7 @@ const getAllLuncBurn = async (req: Request) => {
   if (!result) {
     throw new ApiError(500, "Failed to get LuncBurn record");
   }
+  console.log({result})
   return result;
 };
 

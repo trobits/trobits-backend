@@ -155,6 +155,7 @@ const getAllShibaBurn = async (req: Request) => {
   if (!result) {
     throw new ApiError(500, "Failed to get ShibaBurn record");
   }
+  console.log({result})
   return result;
 };
 
