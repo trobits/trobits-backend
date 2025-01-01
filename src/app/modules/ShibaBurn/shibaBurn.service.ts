@@ -140,28 +140,26 @@ const getAllShibaBurn = async (req: Request) => {
   //   };
   // }
 
-if (parsedMonth && parsedYear) {
-  // Set startDate to the start of the month at midnight UTC
-  startDate = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1)).toISOString(); // Convert to ISO string
-  // Set endDate to the first day of the next month at midnight UTC
-  endDate = new Date(Date.UTC(parsedYear, parsedMonth, 1)).toISOString();
-
-  // Ensure the end date is at the end of the day for the given month
-  endDate = new Date(Date.UTC(parsedYear, parsedMonth, 1)); // Reset the time to midnight
-  endDate.setUTCDate(endDate.getUTCDate() + 1); // Adjust to include the whole last day of the month
-  endDate = endDate.toISOString(); // Convert to ISO string
-
-  // Log the start and end dates
-  console.log("Start Date: ", startDate);
-  console.log("End Date: ", endDate);
-
-  whereCondition = {
-    date: {
-      gte: startDate, // From the start of the month
-      lt: endDate, // Up to the start of the next month
-    },
-  };
-}
+  if (parsedMonth && parsedYear) {
+    // Set startDate to the start of the month at midnight UTC
+    startDate = new Date(Date.UTC(parsedYear, parsedMonth - 1, 1)).toISOString(); // Convert to ISO string
+    // Set endDate to the first day of the next month at midnight UTC
+    endDate = new Date(Date.UTC(parsedYear, parsedMonth, 1)); // Start of the next month
+  
+    // Adjust endDate to the start of the next month, e.g., 2025-02-01T00:00:00.000Z
+    endDate = endDate.toISOString(); // Convert to ISO string
+  
+    // Log the start and end dates for debugging
+    console.log("Start Date: ", startDate);
+    console.log("End Date: ", endDate);
+  
+    whereCondition = {
+      date: {
+        gte: startDate, // From the start of the month
+        lt: endDate, // Up to the start of the next month
+      },
+    };
+  }
 
   //calculate pagination
   const { page, limit, skip, sortBy, sortOrder } =
