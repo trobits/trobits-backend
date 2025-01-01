@@ -207,9 +207,6 @@ const getAllShibaBurn = async (req: Request) => {
     // Format endDate to the first day of the next month (exclusive)
     endDateStr = `${parsedYear}-${String(parsedMonth + 1).padStart(2, '0')}-01`; // '2025-02-01'
 
-    // Log start and end dates for debugging
-    console.log("Start Date: ", startDateStr); // Should log '2025-01-01'
-    console.log("End Date: ", endDateStr); // Should log '2025-02-01'
 
     // Build the where condition for the query
     whereCondition = {
@@ -232,9 +229,6 @@ const getAllShibaBurn = async (req: Request) => {
       date: "desc",
     },
   });
-
-  // Log the query result
-  console.log("Query Result: ", result);
 
   // Check if result is empty or null
   if (!result || result.length === 0) {
