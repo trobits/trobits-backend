@@ -13,6 +13,7 @@ export const corsOptions = {
   origin: [
     "https://trobits.com",
     "https://admin.trobits.com",
+    "*",
     // "https://sisiku-frontend.vercel.app",
     // "https://sisiku-dashboard-client.vercel.app",
     "http://localhost:3000",
