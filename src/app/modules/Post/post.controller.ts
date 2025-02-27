@@ -10,8 +10,8 @@ import {
 import { PostCategory } from "@prisma/client";
 
 interface Files {
-  image?: Express.Multer.File[]; // Optional array of image files
-  video?: Express.Multer.File[]; // Optional array of video files
+  image?: Express.Multer.File[]; 
+  video?: Express.Multer.File[]; 
 }
 
 const createPost = catchAsync(async (req: Request, res: Response) => {
@@ -25,11 +25,11 @@ const createPost = catchAsync(async (req: Request, res: Response) => {
 
   // Check if image or video is provided and set their paths
   if (files?.image && files.image.length > 0) {
-    imageUrl = files.image[0].path; // Path to uploaded image
+    imageUrl = files.image[0].filename; 
   }
 
   if (files?.video && files.video.length > 0) {
-    videoUrl = files.video[0].path; // Path to uploaded video
+    videoUrl = files.video[0].filename; 
   }
 
   const newPost = await PostServices.createPost(
@@ -157,6 +157,16 @@ const getPostByAuthorId = catchAsync(async (req, res) => {
   });
 });
 
+const increaseVideoViewCount = catchAsync(async(req,res) => {
+  const result = await PostServices.increaseVideoViewCount(req.params.id);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Video view count increased successfully",
+    data: result,
+  });
+})
+
 export const PostControllers = {
   createPost,
   getAllPost,
@@ -169,4 +179,5 @@ export const PostControllers = {
   createVideoPost,
   getAllImagePost,
   getAllVideoPost,
+  increaseVideoViewCount
 };

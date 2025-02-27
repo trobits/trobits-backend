@@ -21,10 +21,9 @@ model User {
   followers    String[] @db.ObjectId
   following    String[] @db.ObjectId
   recommended  Boolean  @default(false)
-
-  role     Role    @default(USER)
-  verified Boolean @default(false)
-  otp      String?
+  role         Role     @default(USER)
+  verified     Boolean  @default(false)
+  otp          String?
 
   otpExpiry    DateTime?
   refreshToken String?
@@ -74,25 +73,23 @@ model User {
 // }
 
 model Comment {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
   content      String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  authorId     String   @db.ObjectId
-  author       User     @relation("UserComments", fields: [authorId], references: [id])
-  postId       String?  @db.ObjectId
-  post         Post?    @relation("PostComments", fields: [postId], references: [id])
-  articleId    String?  @db.ObjectId
-  article      Article? @relation("ArticleComments", fields: [articleId], references: [id])
-  likers       String[] @db.ObjectId
-  dislikers    String[] @db.ObjectId
-  likeCount    Int      @default(0)
-  dislikeCount Int      @default(0)
-
-  // For replies
-  replyToId String?   @db.ObjectId // ID of the comment being replied to (if any)
-  replies   Comment[] @relation("CommentReplies")
-  parent    Comment?  @relation("CommentReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  authorId     String    @db.ObjectId
+  author       User      @relation("UserComments", fields: [authorId], references: [id])
+  postId       String?   @db.ObjectId
+  post         Post?     @relation("PostComments", fields: [postId], references: [id])
+  articleId    String?   @db.ObjectId
+  article      Article?  @relation("ArticleComments", fields: [articleId], references: [id])
+  likers       String[]  @db.ObjectId
+  dislikers    String[]  @db.ObjectId
+  likeCount    Int       @default(0)
+  dislikeCount Int       @default(0)
+  replyToId    String?   @db.ObjectId // ID of the comment being replied to (if any)
+  replies      Comment[] @relation("CommentReplies")
+  parent       Comment?  @relation("CommentReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("comments")
 }
@@ -106,6 +103,7 @@ model Post {
   author    User          @relation("UserPosts", fields: [authorId], references: [id])
   image     String?
   likeCount Int           @default(0)
+  viewCount Int?          @default(0)
   likers    String[]      @db.ObjectId
   comments  Comment[]     @relation("PostComments")
   topicId   String?       @db.ObjectId
