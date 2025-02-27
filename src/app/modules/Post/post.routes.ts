@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import { PostControllers } from "./post.controller";
 import { fileUploader } from "../../../helpars/fileUploader";
@@ -11,8 +10,8 @@ router.post(
   "/create-post",
   verifyUser,
   fileUploader.upload.fields([
-    { name: "image", maxCount: 1 }, 
-    { name: "video", maxCount: 1 }, 
+    { name: "image", maxCount: 1 },
+    { name: "video", maxCount: 1 },
   ]),
   PostControllers.createPost
 );
@@ -41,12 +40,19 @@ router.patch(
 router.delete("/delete-post/:postId", PostControllers.deletePost);
 
 // add or remove like
-router.patch("/add-remove-like", verifyUser,PostControllers.addOrRemoveLike);
+router.patch("/add-remove-like", verifyUser, PostControllers.addOrRemoveLike);
 
 // get post by id
 router.get("/:id", PostControllers.getPostById);
 
 // get post by author id
 router.get("/author/:authorId", PostControllers.getPostByAuthorId);
+
+// increase video view count
+router.patch(
+  "/increase-video-view/:id",
+  verifyUser,
+  PostControllers.increaseVideoViewCount
+);
 
 export const postRoutes = router;

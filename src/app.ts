@@ -26,6 +26,7 @@ export const corsOptions = {
 };
 
 // Middleware setup
+
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());

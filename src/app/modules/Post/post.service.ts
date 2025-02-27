@@ -7,6 +7,7 @@ import path from "path";
 import { Socket } from "socket.io";
 import { sendNotification } from "../../../helpars/socketIo";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
+import config from "../../../config";
 
 const createPost = async (
   payload: Partial<Post>,
@@ -25,33 +26,37 @@ const createPost = async (
   let videoUrl = "";
   // Upload video to DigitalOcean Spaces and get the cloud URL
   if (postVideo) {
-    try {
-      const uploadResponse = await fileUploader.uploadToDigitalOcean({
-        path: postVideo,
-        originalname: path.basename(postVideo),
-        mimetype: "video/mp4", // Adjust this based on the video type (e.g., detect dynamically)
-      } as Express.Multer.File);
-      videoUrl = uploadResponse.Location;
-    } catch (error) {
-      console.error("Failed to upload video to DigitalOcean:", error);
-      throw new ApiError(500, "Failed to upload video to DigitalOcean");
-    }
+    // try {
+    //   const uploadResponse = await fileUploader.uploadToDigitalOcean({
+    //     path: postVideo,
+    //     originalname: path.basename(postVideo),
+    //     mimetype: "video/mp4", // Adjust this based on the video type (e.g., detect dynamically)
+    //   } as Express.Multer.File);
+    //   videoUrl = uploadResponse.Location;
+    // } catch (error) {
+    //   console.error("Failed to upload video to DigitalOcean:", error);
+    //   throw new ApiError(500, "Failed to upload video to DigitalOcean");
+    // }
+
+    videoUrl = `${config.backend_image_url}/${postVideo}`;
   }
 
   let imageUrl = "";
   // Upload image to DigitalOcean Spaces and get the cloud URL
   if (postImage) {
-    try {
-      const uploadResponse = await fileUploader.uploadToDigitalOcean({
-        path: postImage,
-        originalname: path.basename(postImage),
-        mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
-      } as Express.Multer.File);
-      imageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
-    } catch (error) {
-      console.error("Failed to upload image to DigitalOcean:", error);
-      throw new ApiError(500, "Failed to upload image to DigitalOcean");
-    }
+    // try {
+    //   const uploadResponse = await fileUploader.uploadToDigitalOcean({
+    //     path: postImage,
+    //     originalname: path.basename(postImage),
+    //     mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
+    //   } as Express.Multer.File);
+    //   imageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+    // } catch (error) {
+    //   console.error("Failed to upload image to DigitalOcean:", error);
+    //   throw new ApiError(500, "Failed to upload image to DigitalOcean");
+    // }
+
+    imageUrl = `${config.backend_image_url}/${postImage}`;
   }
 
   // Create post with or without topic
@@ -603,6 +608,29 @@ const getPostByAuthorId = async (
     data: post,
   };
 };
+
+const increaseVideoViewCount = async (id: string) => {
+  const post = await prisma.post.findUnique({
+    where: { id },
+  });
+  if (!post) {
+    throw new ApiError(404, "Post not found");
+  }
+  if (post.category !== PostCategory.VIDEO) {
+    throw new ApiError(400, "Post is not a video");
+  }
+  const result = await prisma.post.update({
+    where: { id },
+    data: {
+      viewCount: (post.viewCount || 0) + 1,
+    },
+    select: {
+      id: true,
+      viewCount: true,
+    },
+  });
+  return result;
+};
 export const PostServices = {
   createPost,
   getAllPost,
@@ -614,4 +642,5 @@ export const PostServices = {
   getPostByAuthorId,
   getAllImagePost,
   getAllVideoPost,
+  increaseVideoViewCount,
 };
