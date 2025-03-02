@@ -30,14 +30,17 @@ router.get("/all-posts/:topicId", PostControllers.getAllPostsByTopicId);
 
 // update post
 router.patch(
-  "/update-post",
-  // verifyUser,
-  fileUploader.upload.single("image"),
+  "/update-post/:id",
+  verifyUser,
+    fileUploader.upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "video", maxCount: 1 },
+  ]),
   PostControllers.updatePost
 );
 
 // delete post
-router.delete("/delete-post/:postId", PostControllers.deletePost);
+router.delete("/delete-post/:postId",verifyUser, PostControllers.deletePost);
 
 // add or remove like
 router.patch("/add-remove-like", verifyUser, PostControllers.addOrRemoveLike);

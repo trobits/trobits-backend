@@ -8,10 +8,13 @@ import { Socket } from "socket.io";
 import { sendNotification } from "../../../helpars/socketIo";
 import { paginationHelpers } from "../../../helpars/paginationHelper";
 import config from "../../../config";
+import { deleteFile } from "../../../utils/deletePreviousFile";
 
 const createPost = async (
   payload: Partial<Post>,
   userId: string,
+  topicId:string | null,
+  category:PostCategory | null,
   postImage: string,
   postVideo: string
 ) => {
@@ -66,8 +69,8 @@ const createPost = async (
       authorId: userId as string,
       image: imageUrl || "",
       video: videoUrl || "",
-      topicId: payload.topicId || null,
-      category: payload.category || null,
+      topicId: topicId || null,
+      category: category || null,
     },
     include: {
       author: true,
@@ -186,7 +189,15 @@ const getAllPost = async (category: PostCategory | "") => {
 const getAllImagePost = async () => {
   const posts = await prisma.post.findMany({
     where: {
-      category: "IMAGE",
+      OR: [
+        { category: "IMAGE" },
+        {
+          AND: [
+            { image: { not: "" } }, 
+            { video: "" }, 
+          ],
+        },
+      ],
       topic: null,
     },
     orderBy: { createdAt: "desc" },
@@ -307,25 +318,49 @@ const getAllVideoPost = async () => {
   return posts;
 };
 
-const updatePost = async (payload: Partial<IPost>, postImage: string) => {
+const updatePost = async (
+  postId: string,
+  userId: string,
+  payload: any,
+  postImage: string | null,
+  postVideo: string | null
+) => {
   const isPostExist = await prisma.post.findUnique({
-    where: { id: payload.id },
+    where: { id: postId },
   });
+  console.log(postId);
   // If post not exist
   if (!isPostExist) {
     throw new ApiError(404, "Post not found");
   }
+  console.log(payload);
 
   // Upload image if provided
   let imageUrl = "";
+  let videoUrl = "";
   if (postImage) {
     try {
-      const uploadResponse = await fileUploader.uploadToDigitalOcean({
-        path: postImage,
-        originalname: path.basename(postImage),
-        mimetype: "image/jpeg", // Adjust if needed
-      } as Express.Multer.File);
-      imageUrl = uploadResponse.Location;
+      // const uploadResponse = await fileUploader.uploadToDigitalOcean({
+      //   path: postImage,
+      //   originalname: path.basename(postImage),
+      //   mimetype: "image/jpeg", // Adjust if needed
+      // } as Express.Multer.File);
+      imageUrl = `${config.backend_image_url}/${postImage}`;
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+      throw new ApiError(500, "Failed to upload image");
+    }
+  }
+
+  //upload video if provided
+  if (postVideo) {
+    try {
+      // const uploadResponse = await fileUploader.uploadToDigitalOcean({
+      //   path: postImage,
+      //   originalname: path.basename(postImage),
+      //   mimetype: "image/jpeg", // Adjust if needed
+      // } as Express.Multer.File);
+      videoUrl = `${config.backend_image_url}/${postVideo}`;
     } catch (error) {
       console.error("Failed to upload image:", error);
       throw new ApiError(500, "Failed to upload image");
@@ -334,17 +369,21 @@ const updatePost = async (payload: Partial<IPost>, postImage: string) => {
 
   // Update the post with or without topic
   const updatedPost = await prisma.post.update({
-    where: { id: payload.id },
+    where: { id: postId },
     data: {
       content: payload.content || undefined,
       image: imageUrl || undefined,
-      topicId: payload.topicId || null, // If no topicId provided, it will be set to null
+      topicId: payload.topicId || null,
+      video: videoUrl || undefined,
     },
     include: {
       topic: true,
       author: true,
     },
   });
+  if (isPostExist.video && videoUrl) {
+    deleteFile(isPostExist.video);
+  }
 
   if (!updatedPost) {
     throw new ApiError(500, "Failed to update post");
@@ -354,12 +393,15 @@ const updatePost = async (payload: Partial<IPost>, postImage: string) => {
 };
 
 // Delete Post (with or without topic)
-const deletePost = async (postId: string) => {
+const deletePost = async (postId: string, userId: string) => {
   const isPostExist = await prisma.post.findUnique({ where: { id: postId } });
   if (!isPostExist) {
     throw new ApiError(400, "Post does not exist with this id!");
   }
-
+  const isUserExist = await prisma.user.findUnique({ where: { id: userId } });
+  if (!isUserExist || isPostExist.authorId !== userId) {
+    throw new ApiError(400, "You are not allowed to delete this post!");
+  }
   // Check if any comments exist for this post
   const hasComment = await prisma.comment.findFirst({
     where: {
