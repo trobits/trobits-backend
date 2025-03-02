@@ -8,10 +8,11 @@ import {
   UpdatePostSchema,
 } from "./post.validation";
 import { PostCategory } from "@prisma/client";
+import ApiError from "../../../errors/ApiErrors";
 
 interface Files {
-  image?: Express.Multer.File[]; 
-  video?: Express.Multer.File[]; 
+  image?: Express.Multer.File[];
+  video?: Express.Multer.File[];
 }
 
 const createPost = catchAsync(async (req: Request, res: Response) => {
@@ -22,19 +23,23 @@ const createPost = catchAsync(async (req: Request, res: Response) => {
   let imageUrl: string | null = null;
   let videoUrl: string | null = null;
   const userId = req.user?.id;
+  const topicId = req.body.topicId || null;
+  const category = req.body.category || null;
 
   // Check if image or video is provided and set their paths
   if (files?.image && files.image.length > 0) {
-    imageUrl = files.image[0].filename; 
+    imageUrl = files.image[0].filename;
   }
 
   if (files?.video && files.video.length > 0) {
-    videoUrl = files.video[0].filename; 
+    videoUrl = files.video[0].filename;
   }
 
   const newPost = await PostServices.createPost(
     payload,
     userId,
+    topicId,
+    category,
     imageUrl as string,
     videoUrl as string
   );
@@ -79,9 +84,25 @@ const getAllVideoPost = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updatePost = catchAsync(async (req: Request, res: Response) => {
-  const payload = UpdatePostSchema.parse(req.body);
-  const postImage = req.file?.path || "";
-  const updatePost = await PostServices.updatePost(payload, postImage);
+  let payload = UpdatePostSchema.parse(req.body);
+  const postId = req.params.id;
+  let imageUrl: string | null = null;
+  let videoUrl: string | null = null;
+  const userId = req.user?.id;
+  if(!userId){
+    throw new ApiError(401, "Unauthorized request");
+  }
+
+  const files = req.files as Files;
+  // Check if image or video is provided and set their paths
+  if (files?.image && files.image.length > 0) {
+    imageUrl = files.image[0].filename;
+  }
+
+  if (files?.video && files.video.length > 0) {
+    videoUrl = files.video[0].filename;
+  }
+  const updatePost = await PostServices.updatePost(postId,userId,payload, imageUrl, videoUrl);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -92,7 +113,7 @@ const updatePost = catchAsync(async (req: Request, res: Response) => {
 
 const deletePost = catchAsync(async (req, res) => {
   const postId = req.params.postId;
-  const deletedPost = await PostServices.deletePost(postId);
+  const deletedPost = await PostServices.deletePost(postId,req.user.id);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -157,7 +178,7 @@ const getPostByAuthorId = catchAsync(async (req, res) => {
   });
 });
 
-const increaseVideoViewCount = catchAsync(async(req,res) => {
+const increaseVideoViewCount = catchAsync(async (req, res) => {
   const result = await PostServices.increaseVideoViewCount(req.params.id);
   sendResponse(res, {
     statusCode: 200,
@@ -165,7 +186,7 @@ const increaseVideoViewCount = catchAsync(async(req,res) => {
     message: "Video view count increased successfully",
     data: result,
   });
-})
+});
 
 export const PostControllers = {
   createPost,
@@ -179,5 +200,5 @@ export const PostControllers = {
   createVideoPost,
   getAllImagePost,
   getAllVideoPost,
-  increaseVideoViewCount
+  increaseVideoViewCount,
 };
