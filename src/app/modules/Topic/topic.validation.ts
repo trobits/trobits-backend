@@ -8,7 +8,6 @@ const CreateTopicSchema = z.object({
 });
 
 const UpdateTopicSchema = z.object({
-  id:z.string(),
   title: z.string().optional(),
   description: z.string().optional().optional(),
   image: z.string().optional(),

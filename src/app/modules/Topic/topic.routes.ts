@@ -56,7 +56,7 @@ router.get("/author-topics/:authorId", TopicControllers.getTopicsByAuthor);
 
 // update topic
 router.patch(
-  "/update-topic",
+  "/update-topic/:id",
   verifyUser,
   fileUploader.upload.single("image"),
   TopicControllers.updateTopic
