@@ -155,6 +155,7 @@ const deleteTopic = async (topicId: string) => {
   if (!isTopicExist) {
     throw new ApiError(404, "Topic not found with the given id");
   }
+  // a
   // remove existing post from this topic
   await prisma.post.deleteMany({
     where: {
