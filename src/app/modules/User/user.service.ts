@@ -10,6 +10,7 @@ import { fileUploader } from "../../../utils/uploadFileOnDigitalOcean";
 
 import { sendNotification } from "../../../helpars/socketIo";
 import emailSender from "../../../helpars/emailSender";
+import { deleteFile } from "../../../utils/deletePreviousFile";
 
 // Assuming your server instance is available for passing to socketIo functio
 
@@ -335,10 +336,10 @@ const setNewPassword = async (payload: Partial<User>) => {
     throw new ApiError(400, "OTP has expired");
   }
   // Hash new password
-    const hashedPassword: string = await bcrypt.hash(
-      payload.password as string,
-      12
-    );
+  const hashedPassword: string = await bcrypt.hash(
+    payload.password as string,
+    12
+  );
   // Update user with new password and remove OTP
   await prisma.user.update({
     where: { id: user.id },
@@ -679,12 +680,13 @@ const updateUser = async (
   // Upload image to DigitalOcean Spaces and get the cloud URL
   if (profileImageLocalPath) {
     try {
-      const uploadResponse = await fileUploader.uploadToDigitalOcean({
-        path: profileImageLocalPath,
-        originalname: path.basename(profileImageLocalPath),
-        mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
-      } as Express.Multer.File);
-      profileImageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+      // const uploadResponse = await fileUploader.uploadToDigitalOcean({
+      //   path: profileImageLocalPath,
+      //   originalname: path.basename(profileImageLocalPath),
+      //   mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
+      // } as Express.Multer.File);
+      // profileImageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+      profileImageUrl = `${config.backend_image_url}/${profileImageLocalPath}`;
     } catch (error) {
       console.error("Failed to upload image to DigitalOcean:", error);
       throw new ApiError(500, "Failed to upload image to DigitalOcean");
@@ -697,12 +699,13 @@ const updateUser = async (
   // Upload image to DigitalOcean Spaces and get the cloud URL
   if (coverImageLocalPath) {
     try {
-      const uploadResponse = await fileUploader.uploadToDigitalOcean({
-        path: coverImageLocalPath,
-        originalname: path.basename(coverImageLocalPath),
-        mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
-      } as Express.Multer.File);
-      coverImageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+      // const uploadResponse = await fileUploader.uploadToDigitalOcean({
+      //   path: coverImageLocalPath,
+      //   originalname: path.basename(coverImageLocalPath),
+      //   mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
+      // } as Express.Multer.File);
+      // coverImageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+      coverImageUrl = `${config.backend_image_url}/${coverImageLocalPath}`;
     } catch (error) {
       console.error("Failed to upload image to DigitalOcean:", error);
       throw new ApiError(500, "Failed to upload image to DigitalOcean");
@@ -719,7 +722,12 @@ const updateUser = async (
       coverImage: coverImageUrl || undefined,
     },
   });
-
+  if (user.profileImage && profileImageLocalPath) {
+    deleteFile(user.profileImage);
+  }
+  if (user.coverImage && coverImageLocalPath) {
+    deleteFile(user.coverImage);
+  }
   return updatedUser;
 };
 
