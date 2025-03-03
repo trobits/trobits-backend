@@ -28,7 +28,6 @@ router.get("/all-users", UserController.getAllUsers);
 // update user
 router.patch(
   "/update-user/:email",
-  // fileUploader.upload.single("profileImage"),
   fileUploader.upload.fields([
     { name: "profileImage", maxCount: 1 },
     { name: "coverImage", maxCount: 1 },

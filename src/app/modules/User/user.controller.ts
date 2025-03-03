@@ -56,8 +56,8 @@ const updateUser = catchAsync(async (req, res) => {
   const files = req.files as
     | { [fieldname: string]: Express.Multer.File[] }
     | undefined;
-  const profileImageLocalPath = files?.profileImage?.[0]?.path;
-  const coverImageLocalPath = files?.coverImage?.[0]?.path;
+  const profileImageLocalPath = files?.profileImage?.[0]?.filename;
+  const coverImageLocalPath = files?.coverImage?.[0]?.filename;
 
   const result = await UserService.updateUser(
     email,
