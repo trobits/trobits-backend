@@ -3,7 +3,8 @@ import ITopic from "./topic.interface";
 import ApiError from "../../../errors/ApiErrors";
 import { fileUploader } from "../../../utils/uploadFileOnDigitalOcean";
 import path from "path";
-
+import config from "../../../config";
+import { deleteFile } from "../../../utils/deletePreviousFile";
 
 const createTopic = async (
   topicCoverImageLocalPath: string, // Local path of the uploaded image
@@ -23,21 +24,21 @@ const createTopic = async (
   }
 
   // upload image
-  let imageUrl = ""
+  let imageUrl = "";
   // Upload image to DigitalOcean Spaces and get the cloud URL
- if(topicCoverImageLocalPath){
-   try {
-     const uploadResponse = await fileUploader.uploadToDigitalOcean({
-       path: topicCoverImageLocalPath,
-       originalname: path.basename(topicCoverImageLocalPath),
-       mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
-     } as Express.Multer.File);
-     imageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
-   } catch (error) {
-     console.error("Failed to upload image to DigitalOcean:", error);
-     throw new ApiError(500, "Failed to upload image to DigitalOcean");
-   }
- }
+  if (topicCoverImageLocalPath) {
+    try {
+      const uploadResponse = await fileUploader.uploadToDigitalOcean({
+        path: topicCoverImageLocalPath,
+        originalname: path.basename(topicCoverImageLocalPath),
+        mimetype: "image/jpeg", // Adjust this if needed (e.g., dynamically detect the type)
+      } as Express.Multer.File);
+      imageUrl = uploadResponse.Location; // Cloud URL returned from DigitalOcean
+    } catch (error) {
+      console.error("Failed to upload image to DigitalOcean:", error);
+      throw new ApiError(500, "Failed to upload image to DigitalOcean");
+    }
+  }
 
   // Create the topic in the database with the cloud URL
   const createTopic = await prisma.topic.create({
@@ -76,13 +77,15 @@ const getAllTopics = async () => {
   return topics;
 };
 
-const getTopicById = async (topicId:string) => {
-  const isTopicExist = await prisma.topic.findUnique({where:{id:topicId}});
+const getTopicById = async (topicId: string) => {
+  const isTopicExist = await prisma.topic.findUnique({
+    where: { id: topicId },
+  });
   if (!isTopicExist) {
     throw new ApiError(404, "Topic not found with the given id");
   }
   const topic = await prisma.topic.findFirst({
-    where:{id:topicId},
+    where: { id: topicId },
     include: {
       posts: {
         include: {
@@ -113,23 +116,34 @@ const getTopicsByAuthor = async (authorId: string) => {
   return topics;
 };
 
-const updateTopic = async (payload: Partial<ITopic>, topicImage: string) => {
+const updateTopic = async (
+  id: string,
+  payload: Partial<ITopic>,
+  topicImage: string
+) => {
   const topic = await prisma.topic.findUnique({
-    where: { id: payload.id },
+    where: { id: id },
   });
   if (!topic) {
-    throw new ApiError(404, "Topic not found with the given id");
+    throw new ApiError(404, "Topic not found!");
+  }
+  let image;
+  if (topicImage) {
+    image = `${config.backend_image_url}/${topicImage}`;
   }
   const updateTopic = await prisma.topic.update({
-    where: { id: payload.id },
+    where: { id: id },
     data: {
       title: payload.title || undefined,
       description: payload.description || undefined,
-      image: topicImage || undefined,
+      image: image || undefined,
     },
   });
   if (!updateTopic) {
     throw new ApiError(500, "Failed to update the topic");
+  }
+  if (topic.image && topicImage) {
+    deleteFile(topic.image);
   }
   return updateTopic;
 };

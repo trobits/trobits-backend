@@ -49,9 +49,11 @@ const getTopicsByAuthor = catchAsync(async (req, res) => {
 });
 
 const updateTopic = catchAsync(async (req, res) => {
-  const image = req.file?.path || "";
+  const image = req.file?.filename || "";
+  console.log(image)
+  const id = req.params.id;
   const payload = UpdateTopicSchema.parse(req.body);
-  const updateTopic = await TopicServices.updateTopic(payload, image);
+  const updateTopic = await TopicServices.updateTopic(id,payload, image);
   sendResponse(res, {
     statusCode: 200,
     success: true,
