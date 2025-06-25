@@ -4,8 +4,8 @@
       "user_id": "68592548060c04c37658ec78",
       "game_id": "snakegame",
       "game_name": "Snake Game",
-      "timestamp": "2025-06-23T12:59:15.180Z",
-      "highscore": 13,
+      "timestamp": "2025-06-25T16:17:46.392Z",
+      "highscore": 14,
       "first_name": "Affan",
       "last_name": "affananwar"
     },
@@ -35,6 +35,46 @@
       "game_name": "Flappy Bird",
       "timestamp": "2025-06-23T10:27:10.511Z",
       "highscore": 48,
+      "first_name": "Affan",
+      "last_name": "affananwar"
+    }
+  },
+  "brickbreaker": {
+    "68592548060c04c37658ec78": {
+      "user_id": "68592548060c04c37658ec78",
+      "game_id": "brickbreaker",
+      "game_name": "Brick Breaker",
+      "timestamp": "2025-06-25T15:21:32.759Z",
+      "highscore": 3630,
+      "first_name": "Affan",
+      "last_name": "affananwar"
+    },
+    "6826b3c794093c790d731e51": {
+      "user_id": "6826b3c794093c790d731e51",
+      "game_id": "brickbreaker",
+      "game_name": "Brick Breaker",
+      "timestamp": "2025-06-25T15:22:11.560Z",
+      "highscore": 520,
+      "first_name": "Abdul",
+      "last_name": "mannan"
+    }
+  },
+  "spaceshooter": {
+    "6826b3c794093c790d731e51": {
+      "user_id": "6826b3c794093c790d731e51",
+      "game_id": "spaceshooter",
+      "game_name": "Space Shooter",
+      "timestamp": "2025-06-25T15:24:56.459Z",
+      "highscore": 435,
+      "first_name": "Abdul",
+      "last_name": "mannan"
+    },
+    "68592548060c04c37658ec78": {
+      "user_id": "68592548060c04c37658ec78",
+      "game_id": "spaceshooter",
+      "game_name": "Space Shooter",
+      "timestamp": "2025-06-25T16:09:42.030Z",
+      "highscore": 837,
       "first_name": "Affan",
       "last_name": "affananwar"
     }
