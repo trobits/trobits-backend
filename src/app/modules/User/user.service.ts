@@ -820,7 +820,7 @@ const toggleFollow = async (payload: {
       await sendNotification(
         followedId,
         followerId,
-        `${follower.firstName + " " + follower.lastName} has following you`,
+        `${follower.firstName + " " + follower.lastName} has started following you`,
         NotificationType.FOLLOW
       );
     } else {
