@@ -465,6 +465,7 @@ const getUserById = async (id: string) => {
       createdAt: true,
       updatedAt: true,
       recommended: true,
+      rewards: true,
     },
   });
   if (!user) {

@@ -26,6 +26,7 @@ model User {
   otp          String?
   otpExpiry    DateTime?
   refreshToken String?
+  rewards      Int         @default(0)
   posts        Post[]      @relation("UserPosts")
   comments     Comment[]   @relation("UserComments")
   gameScores   GameScore[] @relation("UserGameScores")
