@@ -129,6 +129,7 @@ model Notification {
   type      NotificationType
   createdAt DateTime         @default(now())
   isRead    Boolean          @default(false)
+  isSeen    Boolean          @default(false)
   postId    String?          @db.ObjectId
   category  String?
 
