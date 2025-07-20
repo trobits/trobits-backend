@@ -40,6 +40,8 @@ router.patch("/delete-user/:email", UserController.deleteUser);
 router.patch("/follow-user", UserController.toggleFollow);
 // get all notifications by userId
 router.get("/notifications/:userId", UserController.getNotificationByUserId);
+// mark notifications as seen
+router.patch("/notifications/mark-as-read", UserController.markNotificationsAsSeen);
 // toggle recommend user
 router.patch(
   "/toggle-recommend",

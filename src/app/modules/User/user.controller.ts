@@ -251,6 +251,17 @@ const setNewPassword = catchAsync(async (req, res) => {
   });
 });
 
+const markNotificationsAsSeen = catchAsync(async (req, res) => {
+  const { notificationIds } = req.body;
+  const result = await UserService.markNotificationsAsSeen(notificationIds);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Notifications marked as read!",
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   loginUser,
@@ -272,4 +283,5 @@ export const UserController = {
   getAllVerifiedUsers,
   forgotPassword,
   setNewPassword,
+  markNotificationsAsSeen,
 };
