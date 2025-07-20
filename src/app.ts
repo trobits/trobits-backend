@@ -18,7 +18,6 @@ export const corsOptions = {
     // "https://sisiku-dashboard-client.vercel.app",
     "http://localhost:3000",
     "http://localhost:3001",
-    "*",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
