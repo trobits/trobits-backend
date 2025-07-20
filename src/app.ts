@@ -55,11 +55,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(httpStatus.NOT_FOUND).json({
     success: false,
     message: "API NOT FOUND!",
+    
     error: {
       path: req.originalUrl,
       message: "Your requested path is not found!",
     },
   });
+ console.log(`API NOT FOUND: ${req.originalUrl}`);
 });
 
 export default app;

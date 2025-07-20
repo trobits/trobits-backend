@@ -465,6 +465,7 @@ const getUserById = async (id: string) => {
       createdAt: true,
       updatedAt: true,
       recommended: true,
+      rewards: true,
     },
   });
   if (!user) {
@@ -820,7 +821,7 @@ const toggleFollow = async (payload: {
       await sendNotification(
         followedId,
         followerId,
-        `${follower.firstName + " " + follower.lastName} has following you`,
+        `${follower.firstName + " " + follower.lastName} has started following you`,
         NotificationType.FOLLOW
       );
     } else {
@@ -919,6 +920,21 @@ const getNotificationByUserId = async (userId: string) => {
   return notifications;
 };
 
+const markNotificationsAsSeen = async (notificationIds: string[]) => {
+  if (!notificationIds || !Array.isArray(notificationIds) || notificationIds.length === 0) {
+    throw new ApiError(400, "No notification IDs provided");
+  }
+  const result = await prisma.notification.updateMany({
+    where: {
+      id: { in: notificationIds },
+    },
+    data: {
+      isSeen: true,
+    },
+  });
+  return result;
+};
+
 export const UserService = {
   createUser,
   loginUser,
@@ -940,4 +956,5 @@ export const UserService = {
   getAllVerifiedUsers,
   setNewPassword,
   forgotPassword,
+  markNotificationsAsSeen,
 };

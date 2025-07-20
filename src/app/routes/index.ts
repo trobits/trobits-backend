@@ -9,6 +9,7 @@ import { luncRoutes } from "../modules/Lunc/lunc.routes";
 import { contactUsRoutes } from "../modules/ContactUs/contactUs.routes";
 import { shibaBurnRoutes } from "../modules/ShibaBurn/shibaBurn.route";
 import { luncBurnRoutes } from "../modules/LuncBurn/luncBurn.route";
+import { gameScoreRoutes } from "../modules/GameScore/gameScore.routes";
 
 const router = express.Router();
 
@@ -52,6 +53,10 @@ const moduleRoutes = [
   {
     path: "/contactus",
     route: contactUsRoutes,
+  },
+  {
+    path: "/",
+    route: gameScoreRoutes,
   },
 ];
 

@@ -8,69 +8,31 @@ generator client {
 }
 
 model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  email        String   @unique
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  email        String      @unique
   password     String
   firstName    String
   lastName     String
   profileImage String?
   coverImage   String?
-  isDeleted    Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  followers    String[] @db.ObjectId
-  following    String[] @db.ObjectId
-  recommended  Boolean  @default(false)
-  role         Role     @default(USER)
-  verified     Boolean  @default(false)
+  isDeleted    Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  followers    String[]    @db.ObjectId
+  following    String[]    @db.ObjectId
+  recommended  Boolean     @default(false)
+  role         Role        @default(USER)
+  verified     Boolean     @default(false)
   otp          String?
-
   otpExpiry    DateTime?
   refreshToken String?
-  posts        Post[]    @relation("UserPosts")
-  comments     Comment[] @relation("UserComments")
+  rewards      Int         @default(0)
+  posts        Post[]      @relation("UserPosts")
+  comments     Comment[]   @relation("UserComments")
+  gameScores   GameScore[] @relation("UserGameScores")
 
   @@map("users")
 }
-
-// model Comment {
-//   id           String   @id @default(auto()) @map("_id") @db.ObjectId
-//   content      String
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
-//   authorId     String   @db.ObjectId
-//   author       User     @relation("UserComments", fields: [authorId], references: [id])
-//   postId       String   @db.ObjectId
-//   post         Post     @relation("PostComments", fields: [postId], references: [id])
-//   likers       String[] @db.ObjectId
-//   dislikers    String[] @db.ObjectId
-//   likeCount    Int      @default(0)
-//   dislikeCount Int      @default(0)
-//   articleId    String   @db.ObjectId
-//   article      Article? @relation("ArticleComments", fields: [articleId], references: [id])
-
-//   @@map("comments")
-// }
-
-// model Comment {
-//   id           String   @id @default(auto()) @map("_id") @db.ObjectId
-//   content      String
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
-//   authorId     String   @db.ObjectId
-//   author       User     @relation("UserComments", fields: [authorId], references: [id])
-//   postId       String?  @db.ObjectId
-//   post         Post?    @relation("PostComments", fields: [postId], references: [id])
-//   articleId    String?  @db.ObjectId
-//   article      Article? @relation("ArticleComments", fields: [articleId], references: [id])
-//   likers       String[] @db.ObjectId
-//   dislikers    String[] @db.ObjectId
-//   likeCount    Int      @default(0)
-//   dislikeCount Int      @default(0)
-
-//   // @@unique([postId, articleId])
-//   @@map("comments")
-// }
 
 model Comment {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -143,6 +105,22 @@ model Topic {
   @@map("topics")
 }
 
+model GameScore {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation("UserGameScores", fields: [userId], references: [id])
+  gameId    String   // e.g., "snakegame", "flappybird"
+  gameName  String   // e.g., "Snake Game", "Flappy Bird"
+  highscore Int
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Ensure each user can only have one score per game
+  @@unique([userId, gameId])
+  @@map("gamescores")
+}
+
 model Notification {
   id        String           @id @default(auto()) @map("_id") @db.ObjectId
   userId    String           @db.ObjectId
@@ -151,6 +129,7 @@ model Notification {
   type      NotificationType
   createdAt DateTime         @default(now())
   isRead    Boolean          @default(false)
+  isSeen    Boolean          @default(false)
   postId    String?          @db.ObjectId
   category  String?
 
