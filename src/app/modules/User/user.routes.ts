@@ -36,6 +36,8 @@ router.patch(
 );
 // delete user
 router.patch("/delete-user/:email", UserController.deleteUser);
+// update rewards for user
+router.patch("/update-rewards", UserController.updateUserRewards);
 // follow user
 router.patch("/follow-user", UserController.toggleFollow);
 // get all notifications by userId

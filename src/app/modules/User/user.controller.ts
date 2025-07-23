@@ -262,6 +262,25 @@ const markNotificationsAsSeen = catchAsync(async (req, res) => {
   });
 });
 
+const updateUserRewards = catchAsync(async (req, res) => {
+  const { userEmail, rewards } = req.body;
+  if (!userEmail || typeof rewards !== 'number') {
+    return sendResponse(res, {
+      statusCode: httpStatus.BAD_REQUEST,
+      success: false,
+      message: "userEmail and rewards (number) are required in body",
+      data: null,
+    });
+  }
+  const result = await UserService.updateUserRewards(userEmail, rewards);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User rewards updated successfully!",
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   loginUser,
@@ -284,4 +303,5 @@ export const UserController = {
   forgotPassword,
   setNewPassword,
   markNotificationsAsSeen,
+  updateUserRewards,
 };

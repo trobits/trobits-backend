@@ -935,6 +935,26 @@ const markNotificationsAsSeen = async (notificationIds: string[]) => {
   return result;
 };
 
+// Update rewards for a user by email
+const updateUserRewards = async (email: string, rewardsToAdd: number) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const updatedUser = await prisma.user.update({
+    where: { email },
+    data: { rewards: (user.rewards || 0) + rewardsToAdd },
+    select: {
+      id: true,
+      email: true,
+      rewards: true,
+      firstName: true,
+      lastName: true,
+    },
+  });
+  return updatedUser;
+};
+
 export const UserService = {
   createUser,
   loginUser,
@@ -957,4 +977,5 @@ export const UserService = {
   setNewPassword,
   forgotPassword,
   markNotificationsAsSeen,
+  updateUserRewards,
 };
