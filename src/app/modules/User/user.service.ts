@@ -936,20 +936,41 @@ const markNotificationsAsSeen = async (notificationIds: string[]) => {
 };
 
 // Update rewards for a user by email
-const updateUserRewards = async (email: string, rewardsToAdd: number) => {
+// Store a new reward for a user by email
+const updateUserRewards = async (
+  email: string,
+  reward_amount: number,
+  affiliate_link: string
+) => {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-  const updatedUser = await prisma.user.update({
+  // Create a new Reward object with backend timestamp
+  await prisma.reward.create({
+    data: {
+      reward_amount,
+      affiliate_link,
+      timestamp: new Date(),
+      user: { connect: { id: user.id } },
+    },
+  });
+  // Return updated rewards list for the user
+  const updatedUser = await prisma.user.findUnique({
     where: { email },
-    data: { rewards: (user.rewards || 0) + rewardsToAdd },
     select: {
       id: true,
       email: true,
-      rewards: true,
       firstName: true,
       lastName: true,
+      rewards: {
+        select: {
+          id: true,
+          reward_amount: true,
+          timestamp: true,
+          affiliate_link: true,
+        },
+      },
     },
   });
   return updatedUser;

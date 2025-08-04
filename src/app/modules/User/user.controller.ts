@@ -263,20 +263,24 @@ const markNotificationsAsSeen = catchAsync(async (req, res) => {
 });
 
 const updateUserRewards = catchAsync(async (req, res) => {
-  const { userEmail, rewards } = req.body;
-  if (!userEmail || typeof rewards !== 'number') {
+  const { userEmail, reward_amount, affiliate_link } = req.body;
+  if (!userEmail || typeof reward_amount !== 'number' || !affiliate_link) {
     return sendResponse(res, {
       statusCode: httpStatus.BAD_REQUEST,
       success: false,
-      message: "userEmail and rewards (number) are required in body",
+      message: "userEmail, reward_amount (number), and affiliate_link (string) are required in body",
       data: null,
     });
   }
-  const result = await UserService.updateUserRewards(userEmail, rewards);
+  const result = await UserService.updateUserRewards(
+    userEmail,
+    reward_amount,
+    affiliate_link
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "User rewards updated successfully!",
+    message: "User reward added successfully!",
     data: result,
   });
 });
