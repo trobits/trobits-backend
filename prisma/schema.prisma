@@ -209,6 +209,14 @@ model LuncBurnArchive {
   burns LuncBurn[]
 }
 
+model HomepageArticle {
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+  body  String
+
+  @@map("homepage_articles")
+}
+
 enum CurrencyName {
   SHIBA
   LUNC
