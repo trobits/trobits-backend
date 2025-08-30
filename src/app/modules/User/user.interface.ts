@@ -17,6 +17,7 @@ interface IUser {
   refreshToken?: string;
   posts: ObjectId[];
   comments: ObjectId[];
+  claim: boolean;
 }
 
 export default IUser;

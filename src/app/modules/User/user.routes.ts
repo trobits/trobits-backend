@@ -57,5 +57,6 @@ router.get("/recommended-users", UserController.getAllRecommendedUsers);
 router.get("/blocked-users", UserController.getAllBlockedUsers);
 router.post("/forgot-password", UserController.forgotPassword);
 router.patch("/new-password", UserController.setNewPassword);
+router.patch("/claim-account", UserController.claimAccount);
 
 export const userRoutes = router;

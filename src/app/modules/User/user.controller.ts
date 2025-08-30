@@ -285,6 +285,28 @@ const updateUserRewards = catchAsync(async (req, res) => {
   });
 });
 
+const claimAccount = catchAsync(async (req, res) => {
+  const { userEmail, claim } = req.body;
+  if (!userEmail || typeof claim !== 'boolean') {
+    return sendResponse(res, {
+      statusCode: httpStatus.BAD_REQUEST,
+      success: false,
+      message: "userEmail (string) and claim (boolean) are required in body",
+      data: null,
+    });
+  }
+  const result = await UserService.claimAccount(
+    userEmail,
+    claim // Ensure claim is a boolean
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User account claim status updated successfully!",
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   loginUser,
@@ -308,4 +330,5 @@ export const UserController = {
   setNewPassword,
   markNotificationsAsSeen,
   updateUserRewards,
+  claimAccount
 };
