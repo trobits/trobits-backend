@@ -977,13 +977,15 @@ const updateUserRewards = async (
 };
 
 const claimAccount = async (email: string) => {
+  console.log("Claiming account for email:", email);
+  
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-  if (user.claim) {
-    throw new ApiError(400, "Account has already been claimed");
-  }
+
+  console.log("User found:", user);
+  
   const updatedUser = await prisma.user.update({
     where: { email },
     data: { claim: true },
@@ -1003,6 +1005,7 @@ const claimAccount = async (email: string) => {
       updatedAt: true,
     },
   });
+  console.log("User claim status updated:", updatedUser);
   return updatedUser;
 }
 

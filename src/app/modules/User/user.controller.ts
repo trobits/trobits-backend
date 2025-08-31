@@ -286,8 +286,9 @@ const updateUserRewards = catchAsync(async (req, res) => {
 });
 
 const claimAccount = catchAsync(async (req, res) => {
-  const { userEmail, claim } = req.body;
-  if (!userEmail || typeof claim !== 'boolean') {
+  const { userEmail} = req.body;
+  
+  if (!userEmail) {
     return sendResponse(res, {
       statusCode: httpStatus.BAD_REQUEST,
       success: false,
@@ -297,10 +298,11 @@ const claimAccount = catchAsync(async (req, res) => {
   }
   const result = await UserService.claimAccount(
     userEmail,
-    claim // Ensure claim is a boolean
   );
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
+
+  console.log("Claim account result:", result);
+  
+  res.status(200).json({
     success: true,
     message: "User account claim status updated successfully!",
     data: result,

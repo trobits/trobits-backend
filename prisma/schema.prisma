@@ -30,7 +30,7 @@ model User {
   posts        Post[]      @relation("UserPosts")
   comments     Comment[]   @relation("UserComments")
   gameScores   GameScore[] @relation("UserGameScores")
-
+  claim        Boolean     @default(false)
   @@map("users")
 }
 
