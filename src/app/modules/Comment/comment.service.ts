@@ -183,7 +183,8 @@ const updateComment = async (payload: Partial<Comment>) => {
   }
   return updatedComment;
 };
-// delete comment
+
+// delete comment with replies
 const deleteComment = async (payload: Partial<Comment>) => {
   // check for user validation
   const isUserExist = await prisma.comment.findFirst({
@@ -194,6 +195,7 @@ const deleteComment = async (payload: Partial<Comment>) => {
   if (!isUserExist) {
     throw new ApiError(400, "User does not exist with this ID");
   }
+  
   // check for comment validation
   const isCommentExist = await prisma.comment.findUnique({
     where: { id: payload.id },
@@ -201,13 +203,47 @@ const deleteComment = async (payload: Partial<Comment>) => {
   if (!isCommentExist) {
     throw new ApiError(404, "Comment not found");
   }
-  const deletedComment = await prisma.comment.delete({
-    where: { id: payload.id },
-  });
-  if (!deletedComment) {
-    throw new ApiError(500, "Error deleting comment");
+
+  // Helper function to recursively delete replies
+  const deleteRepliesRecursively = async (commentId: string) => {
+    // Find all direct replies to this comment
+    const replies = await prisma.comment.findMany({
+      where: { replyToId: commentId },
+      select: { id: true }
+    });
+
+    // For each reply, recursively delete its replies first
+    for (const reply of replies) {
+      await deleteRepliesRecursively(reply.id);
+    }
+
+    // Delete all direct replies to this comment
+    await prisma.comment.deleteMany({
+      where: { replyToId: commentId }
+    });
+  };
+
+  try {
+    // First, delete all replies recursively
+    await deleteRepliesRecursively(payload.id!);
+    
+    // Then delete the main comment
+    const deletedComment = await prisma.comment.delete({
+      where: { id: payload.id },
+    });
+    
+    if (!deletedComment) {
+      throw new ApiError(500, "Error deleting comment");
+    }
+    
+    return true;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new ApiError(500, `Error deleting comment and its replies: ${error.message}`);
+    } else {
+      throw new ApiError(500, "Error deleting comment and its replies: Unknown error");
+    }
   }
-  return true;
 };
 
 // add or remove like
