@@ -11,6 +11,8 @@ import { fileUploader } from "../../../utils/uploadFileOnDigitalOcean";
 import { sendNotification } from "../../../helpars/socketIo";
 import emailSender from "../../../helpars/emailSender";
 import { deleteFile } from "../../../utils/deletePreviousFile";
+import nodemailer from "nodemailer";
+
 
 // Assuming your server instance is available for passing to socketIo functio
 
@@ -976,38 +978,194 @@ const updateUserRewards = async (
   return updatedUser;
 };
 
-const claimAccount = async (email: string) => {
-  console.log("Claiming account for email:", email);
-  
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
+// ---------- CLAIMS (email-only, no DB writes) ----------
+interface ClaimPayload {
+  email: string;
+  affiliateName: string;
+  dateCompleted: string;
+  city: string;
+  value: string;
+}
 
-  console.log("User found:", user);
-  
-  const updatedUser = await prisma.user.update({
-    where: { email },
-    data: { claim: true },
-    select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-      claim: true,
-      profileImage: true,
-      coverImage: true,
-      role: true,
-      verified: true,
-      recommended: true,
-      isDeleted: true,
-      createdAt: true,
-      updatedAt: true,
+const claimAccount = async (payload: ClaimPayload) => {
+  const { email, affiliateName, dateCompleted, city, value } = payload;
+
+  // Gmail SMTP transporter (uses env or falls back to your community inbox)
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER || "trobitscommunity@gmail.com",
+      pass: process.env.EMAIL_PASS || "dxow wbph klfv jkcb", // Gmail App Password
     },
   });
-  console.log("User claim status updated:", updatedUser);
-  return updatedUser;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER || "mian.affananwar@gmail.com",
+    to: "mian.affananwar@gmail.com", // change here if you want to test elsewhere
+    subject: `New Claim Submission - ${affiliateName}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+        <div style="background-color: #1a1a1a; color: #ffffff; padding: 30px; border-radius: 10px;">
+          <h2 style="color: #00d4ff; margin-bottom: 20px; text-align: center;">New Claim Submission</h2>
+          
+          <div style="background-color: #2a2a2a; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #ffffff; margin-bottom: 15px; border-bottom: 2px solid #00d4ff; padding-bottom: 5px;">Claim Details</h3>
+            
+            <table style="width: 100%; color: #ffffff;">
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #00d4ff; width: 150px;">Email:</td>
+                <td style="padding: 8px 0;">${email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #00d4ff; width: 150px;">Affiliate Name:</td>
+                <td style="padding: 8px 0;">${affiliateName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #00d4ff; width: 150px;">Date Completed:</td>
+                <td style="padding: 8px 0;">${dateCompleted}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #00d4ff; width: 150px;">City:</td>
+                <td style="padding: 8px 0;">${city}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #00d4ff; width: 150px;">Value:</td>
+                <td style="padding: 8px 0; font-size: 18px; font-weight: bold; color: #00ff88;">${value}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div style="background-color: #2a2a2a; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center;">
+            <p style="margin: 0; color: #cccccc; font-size: 14px;">
+              Submitted on: ${new Date().toLocaleString()}
+            </p>
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px; color: #666666; font-size: 12px;">
+          <p>This email was automatically generated from the Trobits Claims system.</p>
+        </div>
+      </div>
+    `,
+    text: `
+      New Claim Submission
+      
+      Email: ${email}
+      Affiliate Name: ${affiliateName}
+      Date Completed: ${dateCompleted}
+      City: ${city}
+      Value: ${value}
+      
+      Submitted on: ${new Date().toLocaleString()}
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+
+  // Return same shape as the frontend route did
+  return { email, affiliateName, dateCompleted, city, value };
+};
+
+
+// ---------- WITHDRAWALS (email-only, no DB writes) ----------
+interface WithdrawPayload {
+  email: string;
+  coin: string;
+  address: string;
+  withdrawAmount: number;       // points
+  usdValue: string;             // e.g. "12.34"
+  cryptoAmount: string;         // already formatted (e.g. "12345")
 }
+
+const submitWithdraw = async (payload: WithdrawPayload) => {
+  const { email, coin, address, withdrawAmount, usdValue, cryptoAmount } = payload;
+
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER || "trobitscommunity@gmail.com",
+      pass: process.env.EMAIL_PASS || "dxow wbph klfv jkcb", // Gmail App Password
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER || "mian.affananwar@gmail.com",
+    to: "mian.affananwar@gmail.com", // change here if you want to test elsewhere
+    subject: `New Withdrawal Request - ${coin.toUpperCase()}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+        <div style="background-color: #1a1a1a; color: #ffffff; padding: 30px; border-radius: 10px;">
+          <h2 style="color: #00ff88; margin-bottom: 20px; text-align: center;">New Withdrawal Request</h2>
+          
+          <div style="background-color: #2a2a2a; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #ffffff; margin-bottom: 15px; border-bottom: 2px solid #00ff88; padding-bottom: 5px;">Withdrawal Details</h3>
+            
+            <table style="width: 100%; color: #ffffff;">
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #00d4ff; width: 180px;">Email:</td>
+                <td style="padding: 8px 0;">${email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #00d4ff;">Coin:</td>
+                <td style="padding: 8px 0;">${coin.toUpperCase()}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #00d4ff;">Wallet Address:</td>
+                <td style="padding: 8px 0;">${address}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #00d4ff;">Withdraw Points:</td>
+                <td style="padding: 8px 0;">${withdrawAmount}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #00d4ff;">USD Value:</td>
+                <td style="padding: 8px 0; color: #00ff88; font-weight: bold;">$${usdValue}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #00d4ff;">Crypto Amount:</td>
+                <td style="padding: 8px 0; font-size: 16px; font-weight: bold; color: #00ff88;">
+                  ${cryptoAmount} ${coin.toUpperCase()}
+                </td>
+              </tr>
+            </table>
+          </div>
+          
+          <div style="background-color: #2a2a2a; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center;">
+            <p style="margin: 0; color: #cccccc; font-size: 14px;">
+              Submitted on: ${new Date().toLocaleString()}
+            </p>
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px; color: #666666; font-size: 12px;">
+          <p>This email was automatically generated from the Trobits Withdraw system.</p>
+        </div>
+      </div>
+    `,
+    text: `
+      New Withdrawal Request
+      
+      Email: ${email}
+      Coin: ${coin}
+      Wallet Address: ${address}
+      Withdraw Points: ${withdrawAmount}
+      USD Value: $${usdValue}
+      Crypto Amount: ${cryptoAmount} ${coin}
+      
+      Submitted on: ${new Date().toLocaleString()}
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+
+  // Return same shape the frontend route returned
+  return { email, coin, address, withdrawAmount, usdValue, cryptoAmount };
+};
+
 
 export const UserService = {
   createUser,
@@ -1032,5 +1190,6 @@ export const UserService = {
   forgotPassword,
   markNotificationsAsSeen,
   updateUserRewards,
-  claimAccount
+  claimAccount,   
+  submitWithdraw,
 };

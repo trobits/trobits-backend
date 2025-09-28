@@ -57,6 +57,11 @@ router.get("/recommended-users", UserController.getAllRecommendedUsers);
 router.get("/blocked-users", UserController.getAllBlockedUsers);
 router.post("/forgot-password", UserController.forgotPassword);
 router.patch("/new-password", UserController.setNewPassword);
+// claims (matches the old frontend PATCH style)
 router.patch("/claim-account", UserController.claimAccount);
+
+// withdrawals (frontend used POST /api/withdraw)
+router.post("/withdraw", UserController.withdraw);
+
 
 export const userRoutes = router;
