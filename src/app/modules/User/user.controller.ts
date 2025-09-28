@@ -285,29 +285,66 @@ const updateUserRewards = catchAsync(async (req, res) => {
   });
 });
 
+// ---------- CLAIMS ----------
 const claimAccount = catchAsync(async (req, res) => {
-  const { userEmail} = req.body;
-  
-  if (!userEmail) {
+  const { email, affiliateName, dateCompleted, city, value } = req.body;
+
+  if (!email || !affiliateName || !dateCompleted || !city || !value) {
     return sendResponse(res, {
       statusCode: httpStatus.BAD_REQUEST,
       success: false,
-      message: "userEmail (string) and claim (boolean) are required in body",
+      message: "All fields (email, affiliateName, dateCompleted, city, value) are required",
       data: null,
     });
   }
-  const result = await UserService.claimAccount(
-    userEmail,
-  );
 
-  console.log("Claim account result:", result);
-  
-  res.status(200).json({
+  const result = await UserService.claimAccount({
+    email,
+    affiliateName,
+    dateCompleted,
+    city,
+    value,
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
     success: true,
-    message: "User account claim status updated successfully!",
+    message: "Claim submitted successfully!",
     data: result,
   });
 });
+
+
+// ---------- WITHDRAWALS ----------
+const withdraw = catchAsync(async (req, res) => {
+  const { email, coin, address, withdrawAmount, usdValue, cryptoAmount } = req.body;
+
+  if (!email || !coin || !address || !withdrawAmount || !usdValue || !cryptoAmount) {
+    return sendResponse(res, {
+      statusCode: httpStatus.BAD_REQUEST,
+      success: false,
+      message: "All fields (email, coin, address, withdrawAmount, usdValue, cryptoAmount) are required",
+      data: null,
+    });
+  }
+
+  const result = await UserService.submitWithdraw({
+    email,
+    coin,
+    address,
+    withdrawAmount: Number(withdrawAmount),
+    usdValue: String(usdValue),
+    cryptoAmount: String(cryptoAmount),
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Withdrawal submitted successfully!",
+    data: result,
+  });
+});
+
 
 export const UserController = {
   createUser,
@@ -332,5 +369,6 @@ export const UserController = {
   setNewPassword,
   markNotificationsAsSeen,
   updateUserRewards,
-  claimAccount
+  claimAccount, 
+  withdraw,     
 };
