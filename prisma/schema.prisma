@@ -7,6 +7,9 @@ generator client {
   provider = "prisma-client-js"
 }
 
+
+
+
 model User {
   id           String      @id @default(auto()) @map("_id") @db.ObjectId
   email        String      @unique
@@ -31,8 +34,35 @@ model User {
   comments     Comment[]   @relation("UserComments")
   gameScores   GameScore[] @relation("UserGameScores")
   claim        Boolean     @default(false)
+
+  // 👇 Add this line to complete the relation
+  pushTokens   PushToken[] @relation("UserPushTokens")
+
   @@map("users")
 }
+
+model PushToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+
+  // 👇 Optional explicit relation name (matches User.pushTokens)
+  user       User     @relation("UserPushTokens", fields: [userId], references: [id])
+
+  token      String   @unique
+  platform   String
+  deviceId   String?
+  appVersion String?
+  locale     String?
+  osVersion  String?
+  model      String?
+  disabled   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@map("pushtokens")
+}
+
 
 model Reward {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId

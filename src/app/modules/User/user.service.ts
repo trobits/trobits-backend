@@ -1002,8 +1002,8 @@ const claimAccount = async (payload: ClaimPayload) => {
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_USER || "trobitscommunity@gmail.com",
-    to: "trobitscommunity@gmail.com", // change here if you want to test elsewhere
+    from: process.env.EMAIL_USER || "mian.affananwar@gmail.com",
+    to: "mian.affananwar@gmail.com", // change here if you want to test elsewhere
     subject: `New Claim Submission - ${affiliateName}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
@@ -1093,8 +1093,8 @@ const submitWithdraw = async (payload: WithdrawPayload) => {
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_USER || "trobitscommunity@gmail.com",
-    to: "trobitscommunity@gmail.com", // change here if you want to test elsewhere
+    from: process.env.EMAIL_USER || "mian.affananwar@gmail.com",
+    to: "mian.affananwar@gmail.com", // change here if you want to test elsewhere
     subject: `New Withdrawal Request - ${coin.toUpperCase()}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
