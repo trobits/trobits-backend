@@ -1166,6 +1166,90 @@ const submitWithdraw = async (payload: WithdrawPayload) => {
   return { email, coin, address, withdrawAmount, usdValue, cryptoAmount };
 };
 
+const deleteUserCompletely = async (userId: string) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new ApiError(404, "User not found");
+
+  // Use a transaction to ensure all related deletions happen together
+  await prisma.$transaction(async (tx) => {
+    // 1️⃣ Delete user’s posts (and their comments)
+    await tx.comment.deleteMany({
+      where: { post: { authorId: userId } },
+    });
+    await tx.post.deleteMany({
+      where: { authorId: userId },
+    });
+
+    // 2️⃣ Delete all comments authored by this user (on others’ posts)
+    await tx.comment.deleteMany({
+      where: { authorId: userId },
+    });
+
+    // 3️⃣ Delete user’s rewards
+    await tx.reward.deleteMany({
+      where: { userId },
+    });
+
+    // 4️⃣ Delete user’s notifications (sent or received)
+    await tx.notification.deleteMany({
+      where: {
+        OR: [{ userId }, { senderId: userId }],
+      },
+    });
+
+    // 5️⃣ Delete user’s game scores
+    await tx.gameScore.deleteMany({
+      where: { userId },
+    });
+
+    // 6️⃣ Delete push tokens
+    await tx.pushToken.deleteMany({
+      where: { userId },
+    });
+
+    // 7️⃣ Remove this user from others’ followers/following arrays
+    await tx.user.updateMany({
+      where: {
+        OR: [
+          { followers: { has: userId } },
+          { following: { has: userId } },
+        ],
+      },
+      data: {
+        followers: { set: [] },
+        following: { set: [] },
+      },
+    });
+
+    // 8️⃣ Remove likes/dislikes made by the user from posts/comments
+    await tx.post.updateMany({
+      where: { likers: { has: userId } },
+      data: {
+        likers: { set: [] },
+      },
+    });
+    await tx.comment.updateMany({
+      where: {
+        OR: [
+          { likers: { has: userId } },
+          { dislikers: { has: userId } },
+        ],
+      },
+      data: {
+        likers: { set: [] },
+        dislikers: { set: [] },
+      },
+    });
+
+    // 9️⃣ Finally, delete the user record
+    await tx.user.delete({
+      where: { id: userId },
+    });
+  });
+
+  return { success: true };
+}
+
 
 export const UserService = {
   createUser,
@@ -1192,4 +1276,5 @@ export const UserService = {
   updateUserRewards,
   claimAccount,   
   submitWithdraw,
+  deleteUserCompletely
 };

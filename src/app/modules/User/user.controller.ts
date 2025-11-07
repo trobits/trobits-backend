@@ -345,6 +345,18 @@ const withdraw = catchAsync(async (req, res) => {
   });
 });
 
+const deleteUserCompletely = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await UserService.deleteUserCompletely(id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User and all related data deleted successfully!",
+    data: result,
+  });
+});
+
+
 
 export const UserController = {
   createUser,
@@ -370,5 +382,6 @@ export const UserController = {
   markNotificationsAsSeen,
   updateUserRewards,
   claimAccount, 
-  withdraw,     
+  withdraw,    
+  deleteUserCompletely 
 };

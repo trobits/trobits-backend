@@ -63,5 +63,6 @@ router.patch("/claim-account", UserController.claimAccount);
 // withdrawals (frontend used POST /api/withdraw)
 router.post("/withdraw", UserController.withdraw);
 
+router.delete("/delete-user-completely/:id", UserController.deleteUserCompletely);
 
 export const userRoutes = router;

@@ -19,6 +19,18 @@ const sendEmailFromContactUs = catchAsync(
   }
 );
 
+// 🆕 Send Account Deletion Request Email
+export const sendAccountDeletionRequest = catchAsync(async (req: Request, res: Response) => {
+  const result = await contactUsServices.sendAccountDeletionRequest(req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Account deletion request email sent successfully!",
+    data: result,
+  });
+});
+
 export const contactUsController = {
   sendEmailFromContactUs,
+  sendAccountDeletionRequest
 };

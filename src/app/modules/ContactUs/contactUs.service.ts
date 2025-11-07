@@ -2,19 +2,20 @@ import nodemailer from "nodemailer";
 import config from "../../../config";
 import prisma from "../../../shared/prisma";
 
-const sendEmailFromContactUs = async (data: {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-}) => {
-  const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
     service: "Gmail", // You can change this to your preferred email service provider
     auth: {
       user: config.emailSender.email, // Your email
       pass: config.emailSender.app_pass, // Your email password or app password
     },
   });
+
+const sendEmailFromContactUs = async (data: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) => {
 
   const mailOptions = {
     from: `"${data.name}" <${data.email}>`, // sender address
@@ -87,6 +88,35 @@ const sendEmailFromContactUs = async (data: {
   //   return saveData;
 };
 
+// 🆕 Send Account Deletion Request Email
+const sendAccountDeletionRequest = async (payload: { email: string; description: string }) => {
+  const { email, description } = payload;
+
+  const subject = `Account Deletion Request - ${email}`;
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; color: #e0e0e0; background-color: #0d0d0d; padding: 20px; border-radius: 8px;">
+      <h2 style="color:#ff4d4f;">🗑️ Account Deletion Request</h2>
+      <p><strong>User Email:</strong> ${email}</p>
+      <p><strong>Reason Provided:</strong></p>
+      <blockquote style="border-left: 3px solid #ff4d4f; padding-left: 10px; color: #ccc;">
+        ${description}
+      </blockquote>
+      <p style="color:#888;">Please review this request and remove the user’s data from the database if verified.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: config.emailSender.email,
+    to: "trobitscommunity@gmail.com",
+    subject,
+    html: htmlContent,
+  });
+
+  return { message: "Account deletion request email sent to Trobits Community" };
+};
+
+
 export const contactUsServices = {
   sendEmailFromContactUs,
+  sendAccountDeletionRequest
 };
