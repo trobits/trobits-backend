@@ -26,6 +26,7 @@ jobs:
         run: |
           ssh trobits@160.153.175.21 << 'EOF'
             cd /var/www/trobits-backend
+            rm -rf .env
             git pull origin main
             npm install
             npm run build
