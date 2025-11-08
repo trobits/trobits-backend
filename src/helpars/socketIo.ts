@@ -7,7 +7,7 @@ import prisma from "../shared/prisma";
 import nodemailer from "nodemailer";
 
 // ⬇️ NEW: bring in your existing FCM sender
-import { sendUserNotification } from "../../src/app/modules/Push/push.sender";
+import { sendUserNotification } from "../app/modules/Push/push.sender";
 
 // Declare a variable to hold io and sendNotification
 let sendNotification: Function | null = null;
