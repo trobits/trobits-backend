@@ -12,6 +12,8 @@ import { luncBurnRoutes } from "../modules/LuncBurn/luncBurn.route";
 import { gameScoreRoutes } from "../modules/GameScore/gameScore.routes";
 import { homepageArticleRoutes } from "../modules/HomepageArticle";
 import { pushRoutes } from "../modules/Push/push.routes";
+import { dailyRewardsRoutes } from "../modules/DailyRewards/dailyRewards.routes";
+
 
 const router = express.Router();
 
@@ -65,6 +67,9 @@ const moduleRoutes = [
     route: gameScoreRoutes,
   },
    { path: "/push", route: pushRoutes },
+   { path: "/daily-rewards", route: dailyRewardsRoutes },
+
+
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
