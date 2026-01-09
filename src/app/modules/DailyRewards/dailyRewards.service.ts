@@ -1,7 +1,29 @@
 import prisma from "../../../shared/prisma";
 import ApiError from "../../../errors/ApiErrors";
-import { MAX_STREAK_DAY, pointsForDay } from "./dailyRewards.constants";
-import { getCycleKey, getNextResetAtUtc, getPrevCycleKey } from "./dailyRewards.utils";
+import {
+  MAX_STREAK_DAY,
+  pointsForDay,
+  DAILY_REWARDS_DEBUG_LOGS,
+} from "./dailyRewards.constants";
+import {
+  getCycleKey,
+  getNextResetAtUtc,
+  getPrevCycleKey,
+} from "./dailyRewards.utils";
+
+const log = (...args: any[]) => {
+  if (DAILY_REWARDS_DEBUG_LOGS) {
+    // eslint-disable-next-line no-console
+    console.log("[DailyRewards]", ...args);
+  }
+};
+
+const logError = (...args: any[]) => {
+  if (DAILY_REWARDS_DEBUG_LOGS) {
+    // eslint-disable-next-line no-console
+    console.error("[DailyRewards]", ...args);
+  }
+};
 
 const ensureState = async (userId: string) => {
   const state = await prisma.dailyPointState.findUnique({
@@ -43,6 +65,13 @@ const computeDayToClaim = (state: any, currentCycleKey: string) => {
   }
 
   return state.streakDay ?? 1;
+};
+
+const isMongoDuplicateKeyError = (err: any) => {
+  // Prisma + Mongo commonly surfaces duplicate key as P2002 OR raw Mongo E11000.
+  // We handle both.
+  const msg = String(err?.message || "");
+  return err?.code === "P2002" || msg.includes("E11000") || msg.includes("duplicate key");
 };
 
 const clearMyDailyClaims = async (userId: string) => {
@@ -110,6 +139,27 @@ const getStatus = async (userId: string) => {
     select: { pointsBalance: true },
   });
 
+  // 🔎 DEBUG: prove what we're reading from users collection
+  log("STATUS", {
+    userId,
+    cycleKey,
+    pointsBalanceRaw: user?.pointsBalance,
+    alreadyClaimed: Boolean(alreadyClaimed),
+    stateLastCycleKey: state?.lastCycleKey ?? null,
+    stateStreakDay: state?.streakDay ?? null,
+    stateLastClaimAt: state?.lastClaimAt ? state.lastClaimAt.toISOString() : null,
+  });
+
+  // Optional: If pointsBalance is explicitly null, we can auto-heal it here too.
+  // This is safe and prevents "status shows 0 due to null" even when claims exist.
+  if (user && user.pointsBalance === null) {
+    log("STATUS_FIX_NULL_BALANCE", { userId, from: null, to: 0 });
+    await prisma.user.update({
+      where: { id: userId },
+      data: { pointsBalance: 0 },
+    });
+  }
+
   return {
     pointsBalance: user?.pointsBalance ?? 0,
     cycleKey,
@@ -145,8 +195,32 @@ const claim = async (userId: string) => {
 
   const nextStreakDay = dayToClaim >= MAX_STREAK_DAY ? 1 : dayToClaim + 1;
 
+  log("CLAIM_ATTEMPT", { userId, cycleKey, dayToClaim, points });
+
   try {
     const result = await prisma.$transaction(async (tx) => {
+      // 🔎 Check user balance before increment (debug + null handling)
+      const userBefore = await tx.user.findUnique({
+        where: { id: userId },
+        select: { pointsBalance: true },
+      });
+
+      if (!userBefore) {
+        throw new ApiError(404, "User not found");
+      }
+
+      log("CLAIM_USER_BEFORE", { userId, pointsBalanceRaw: userBefore.pointsBalance });
+
+      // ✅ Normalize null -> 0 before increment (critical fix)
+      if (userBefore.pointsBalance === null) {
+        log("CLAIM_FIX_NULL_BALANCE", { userId, from: null, to: 0 });
+        await tx.user.update({
+          where: { id: userId },
+          data: { pointsBalance: 0 },
+          select: { pointsBalance: true },
+        });
+      }
+
       const claimRow = await tx.dailyPointClaim.create({
         data: {
           user: { connect: { id: userId } },
@@ -174,6 +248,13 @@ const claim = async (userId: string) => {
         select: { pointsBalance: true },
       });
 
+      log("CLAIM_SUCCESS", {
+        userId,
+        cycleKey,
+        awardedPoints: points,
+        pointsBalanceAfter: userRow.pointsBalance,
+      });
+
       return { claimRow, stateRow, userRow };
     });
 
@@ -188,8 +269,23 @@ const claim = async (userId: string) => {
       nextDayToClaim: result.stateRow.streakDay,
     };
   } catch (err: any) {
-    // If race condition happens, unique constraint will throw:
-    throw new ApiError(400, "Already claimed for this cycle.");
+    // 🔥 DO NOT mask all errors as "Already claimed".
+    // Only map duplicate/unique constraint errors to that message.
+    logError("CLAIM_ERROR", {
+      userId,
+      cycleKey,
+      errCode: err?.code,
+      errMessage: String(err?.message || err),
+    });
+
+    if (isMongoDuplicateKeyError(err)) {
+      throw new ApiError(400, "Already claimed for this cycle.");
+    }
+
+    // if it's an ApiError already, keep it
+    if (err instanceof ApiError) throw err;
+
+    throw new ApiError(500, "Failed to claim daily reward.");
   }
 };
 

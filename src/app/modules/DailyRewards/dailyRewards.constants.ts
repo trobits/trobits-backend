@@ -2,6 +2,12 @@ export const DAILY_RESET_HOUR_UTC = 0; // 12 AM UTC
 export const MAX_STREAK_DAY = 7;
 
 /**
+ * Turn this on temporarily in prod/staging to debug the issue.
+ * Set back to false after verifying.
+ */
+export const DAILY_REWARDS_DEBUG_LOGS = true;
+
+/**
  * Configure points per streak day (1..7)
  * Change values as you want.
  */
