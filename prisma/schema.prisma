@@ -276,6 +276,7 @@ model HomepageArticle {
   id    String  @id @default(auto()) @map("_id") @db.ObjectId
   title String
   body  String
+  image String?
 
   @@map("homepage_articles")
 }
