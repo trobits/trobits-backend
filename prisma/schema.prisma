@@ -275,11 +275,11 @@ model LuncBurnArchive {
 model HomepageArticle {
   id    String  @id @default(auto()) @map("_id") @db.ObjectId
   title String
-  body  String
-  image String?
+  body  String  // stores HTML
 
   @@map("homepage_articles")
 }
+
 
 enum CurrencyName {
   SHIBA
