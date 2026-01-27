@@ -1,1 +1,1 @@
-export { default as homepageArticleRoutes } from './homepageArticle.routes';
+export { default as homepageArticleRoutes } from "./homepageArticle.routes";

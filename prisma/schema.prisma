@@ -35,17 +35,50 @@ model User {
   gameScores   GameScore[] @relation("UserGameScores")
   claim        Boolean     @default(false)
 
-  // 👇 Add this line to complete the relation
   pushTokens   PushToken[] @relation("UserPushTokens")
+
+  pointsBalance Int        @default(0)
+  dailyPointState  DailyPointState?
+  dailyPointClaims DailyPointClaim[]
 
   @@map("users")
 }
+
+model DailyPointState {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @unique @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id])
+
+  streakDay    Int      @default(1) // 1..7
+  lastClaimAt  DateTime?
+  lastCycleKey String?  // "YYYY-MM-DD" in UTC day cycle (00:00 UTC boundary)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("daily_point_states")
+}
+
+model DailyPointClaim {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+
+  cycleKey  String   // "YYYY-MM-DD"
+  dayNumber Int      // 1..7 (streak day at claim time)
+  points    Int
+  claimedAt DateTime @default(now())
+
+  @@unique([userId, cycleKey]) // prevents double claim same day
+  @@map("daily_point_claims")
+}
+
+
 
 model PushToken {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   userId     String   @db.ObjectId
 
-  // 👇 Optional explicit relation name (matches User.pushTokens)
   user       User     @relation("UserPushTokens", fields: [userId], references: [id])
 
   token      String   @unique
@@ -242,10 +275,11 @@ model LuncBurnArchive {
 model HomepageArticle {
   id    String  @id @default(auto()) @map("_id") @db.ObjectId
   title String
-  body  String
+  body  String  // stores HTML
 
   @@map("homepage_articles")
 }
+
 
 enum CurrencyName {
   SHIBA
