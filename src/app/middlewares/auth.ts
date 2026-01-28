@@ -102,3 +102,45 @@ export const verifyUser = catchAsync(async (req, res, next) => {
     throw new ApiError(401, error?.message || "Invalid access token");
   }
 });
+
+// WARNING: Decode-only auth. This does not verify signature or expiry.
+export const decodeUser = catchAsync(async (req, res, next) => {
+  try {
+    const token =
+      req.cookies?.accessToken ||
+      req.header("Authorization")?.replace("Bearer ", "");
+    if (!token) {
+      throw new ApiError(401, "Unauthorized request");
+    }
+
+    const decodedToken = jwt.decode(token) as JwtPayload | null;
+    if (!decodedToken?.id) {
+      throw new ApiError(401, "Invalid access token");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decodedToken.id as string,
+      },
+    });
+
+    if (!user) {
+      throw new ApiError(401, "Invalid Access Token");
+    }
+
+    const isBlocked = await prisma.user.findUnique({
+      where: {
+        id: user.id,
+        isDeleted: true,
+      },
+    });
+    if (isBlocked) {
+      throw new ApiError(403, "User is blocked!");
+    }
+
+    req.user = user;
+    next();
+  } catch (error: any) {
+    throw new ApiError(401, error?.message || "Invalid access token");
+  }
+});
